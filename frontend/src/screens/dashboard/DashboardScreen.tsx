@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  View, 
-  StyleSheet, 
-  ScrollView, 
+import {
+  View,
+  StyleSheet,
+  ScrollView,
   RefreshControl,
-  Dimensions 
+  Dimensions,
 } from 'react-native';
-import { 
-  Text, 
-  Card, 
-  Button, 
+import {
+  Text,
+  Card,
+  Button,
   FAB,
   Surface,
   IconButton,
-  Chip 
+  Chip,
 } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -26,7 +26,10 @@ import { DashboardStackParamList } from '@/types';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { useAuth } from '@/providers/AuthProvider';
 
-type DashboardScreenNavigationProp = StackNavigationProp<DashboardStackParamList, 'DashboardHome'>;
+type DashboardScreenNavigationProp = StackNavigationProp<
+  DashboardStackParamList,
+  'DashboardHome'
+>;
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -83,7 +86,9 @@ export const DashboardScreen: React.FC = () => {
         <View style={styles.headerContent}>
           <View>
             <Text style={styles.greeting}>{getGreeting()}!</Text>
-            <Text style={styles.username}>{user?.full_name || user?.username || 'User'}</Text>
+            <Text style={styles.username}>
+              {user?.full_name || user?.username || 'User'}
+            </Text>
           </View>
           <IconButton
             icon="bell-outline"
@@ -110,17 +115,24 @@ export const DashboardScreen: React.FC = () => {
                 <Text style={styles.progressUnit}>ml</Text>
                 <Text style={styles.progressGoal}>/ {dailyGoal}ml</Text>
               </View>
-              
+
               <View style={styles.progressInfo}>
                 <Text style={styles.progressTitle}>Today's Progress</Text>
-                <Text style={styles.progressPercentage}>{Math.round(progress)}% Complete</Text>
-                
+                <Text style={styles.progressPercentage}>
+                  {Math.round(progress)}% Complete
+                </Text>
+
                 {remainingAmount > 0 ? (
                   <Text style={styles.remainingText}>
                     {remainingAmount}ml remaining to reach your goal
                   </Text>
                 ) : (
-                  <Text style={[styles.remainingText, { color: theme.colors.success }]}>
+                  <Text
+                    style={[
+                      styles.remainingText,
+                      { color: theme.colors.success },
+                    ]}
+                  >
                     🎉 Goal achieved! Great job!
                   </Text>
                 )}
@@ -150,9 +162,11 @@ export const DashboardScreen: React.FC = () => {
         <Animatable.View animation="fadeInUp" duration={800} delay={400}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Today's Records</Text>
-            <Button mode="text" onPress={() => {}}>View All</Button>
+            <Button mode="text" onPress={() => {}}>
+              View All
+            </Button>
           </View>
-          
+
           {todayRecords.length > 0 ? (
             <View style={styles.recordsList}>
               {todayRecords.slice(0, 3).map((record, index) => (
@@ -179,7 +193,9 @@ export const DashboardScreen: React.FC = () => {
               <Card.Content style={styles.emptyStateContent}>
                 <Text style={styles.emptyStateIcon}>💧</Text>
                 <Text style={styles.emptyStateText}>No records yet today</Text>
-                <Text style={styles.emptyStateSubtext}>Start tracking your hydration!</Text>
+                <Text style={styles.emptyStateSubtext}>
+                  Start tracking your hydration!
+                </Text>
               </Card.Content>
             </Card>
           )}
@@ -191,7 +207,8 @@ export const DashboardScreen: React.FC = () => {
           <Card style={styles.tipCard}>
             <Card.Content>
               <Text style={styles.tipText}>
-                Drink a glass of water first thing in the morning to kickstart your metabolism!
+                Drink a glass of water first thing in the morning to kickstart
+                your metabolism!
               </Text>
             </Card.Content>
           </Card>

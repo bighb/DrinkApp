@@ -15,7 +15,12 @@ const Tab = createBottomTabNavigator<MainTabParamList>();
 export const MainNavigator: React.FC = () => {
   const theme = useTheme();
 
-  const getTabBarIcon = (routeName: string, focused: boolean, color: string, size: number) => {
+  const getTabBarIcon = (
+    routeName: string,
+    focused: boolean,
+    color: string,
+    size: number
+  ) => {
     let iconName: keyof typeof Ionicons.glyphMap;
 
     switch (routeName) {
@@ -65,29 +70,29 @@ export const MainNavigator: React.FC = () => {
       })}
       initialRouteName="Dashboard"
     >
-      <Tab.Screen 
-        name="Dashboard" 
+      <Tab.Screen
+        name="Dashboard"
         component={DashboardNavigator}
         options={{
           tabBarLabel: 'Home',
         }}
       />
-      <Tab.Screen 
-        name="Records" 
+      <Tab.Screen
+        name="Records"
         component={RecordsNavigator}
         options={{
           tabBarLabel: 'Records',
         }}
       />
-      <Tab.Screen 
-        name="Statistics" 
+      <Tab.Screen
+        name="Statistics"
         component={StatisticsNavigator}
         options={{
           tabBarLabel: 'Stats',
         }}
       />
-      <Tab.Screen 
-        name="Profile" 
+      <Tab.Screen
+        name="Profile"
         component={ProfileNavigator}
         options={{
           tabBarLabel: 'Profile',

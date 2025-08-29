@@ -39,7 +39,8 @@ export class NotificationService {
   static async requestPermissions(): Promise<boolean> {
     try {
       if (Device.isDevice) {
-        const { status: existingStatus } = await Notifications.getPermissionsAsync();
+        const { status: existingStatus } =
+          await Notifications.getPermissionsAsync();
         let finalStatus = existingStatus;
 
         if (existingStatus !== 'granted') {
@@ -120,17 +121,17 @@ export class NotificationService {
    */
   private static setupNotificationListeners(): void {
     // Handle notification received while app is in foreground
-    Notifications.addNotificationReceivedListener((notification) => {
+    Notifications.addNotificationReceivedListener(notification => {
       console.log('Notification received:', notification);
       // You can customize the behavior when notification is received
     });
 
     // Handle notification response (user tapped notification)
-    Notifications.addNotificationResponseReceivedListener((response) => {
+    Notifications.addNotificationResponseReceivedListener(response => {
       console.log('Notification response:', response);
-      
+
       const data = response.notification.request.content.data;
-      
+
       // Handle different types of notifications
       switch (data?.type) {
         case 'hydration_reminder':
@@ -242,19 +243,19 @@ export class NotificationService {
     intervalMinutes: number,
     startTime: Date,
     endTime: Date,
-    message: string = 'Don\'t forget to drink water!'
+    message: string = "Don't forget to drink water!"
   ): Promise<string[]> {
     try {
       const notificationIds: string[] = [];
       const current = new Date(startTime);
-      
+
       while (current <= endTime) {
         const notificationId = await this.scheduleHydrationReminder(
           message,
           new Date(current)
         );
         notificationIds.push(notificationId);
-        
+
         current.setMinutes(current.getMinutes() + intervalMinutes);
       }
 
@@ -292,7 +293,9 @@ export class NotificationService {
   /**
    * Get scheduled notifications
    */
-  static async getScheduledNotifications(): Promise<Notifications.NotificationRequest[]> {
+  static async getScheduledNotifications(): Promise<
+    Notifications.NotificationRequest[]
+  > {
     try {
       return await Notifications.getAllScheduledNotificationsAsync();
     } catch (error) {
@@ -304,17 +307,24 @@ export class NotificationService {
   /**
    * Register push token with server
    */
-  static async registerPushToken(token: string, authToken: string): Promise<ApiResponse<void>> {
+  static async registerPushToken(
+    token: string,
+    authToken: string
+  ): Promise<ApiResponse<void>> {
     try {
-      const response = await ApiService.post('/users/push-token', {
-        push_token: token,
-        platform: Platform.OS,
-        device_id: Constants.deviceId || 'unknown',
-      }, {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
+      const response = await ApiService.post(
+        '/users/push-token',
+        {
+          push_token: token,
+          platform: Platform.OS,
+          device_id: Constants.deviceId || 'unknown',
         },
-      });
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        }
+      );
 
       return response;
     } catch (error: any) {
@@ -339,14 +349,18 @@ export class NotificationService {
     authToken: string
   ): Promise<ApiResponse<void>> {
     try {
-      const apiResponse = await ApiService.post(`/reminders/${reminderId}/respond`, {
-        response_type: response,
-        responded_at: new Date().toISOString(),
-      }, {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
+      const apiResponse = await ApiService.post(
+        `/reminders/${reminderId}/respond`,
+        {
+          response_type: response,
+          responded_at: new Date().toISOString(),
         },
-      });
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        }
+      );
 
       return apiResponse;
     } catch (error: any) {
@@ -381,7 +395,10 @@ export class NotificationService {
   /**
    * Show daily goal completed notification
    */
-  static async showGoalCompletedNotification(intake: number, goal: number): Promise<void> {
+  static async showGoalCompletedNotification(
+    intake: number,
+    goal: number
+  ): Promise<void> {
     try {
       await this.scheduleLocalNotification(
         '🎉 Daily Goal Achieved!',
@@ -400,7 +417,10 @@ export class NotificationService {
   /**
    * Show weekly report notification
    */
-  static async showWeeklyReportNotification(averageIntake: number, bestDay: string): Promise<void> {
+  static async showWeeklyReportNotification(
+    averageIntake: number,
+    bestDay: string
+  ): Promise<void> {
     try {
       await this.scheduleLocalNotification(
         '📊 Your Weekly Hydration Report',

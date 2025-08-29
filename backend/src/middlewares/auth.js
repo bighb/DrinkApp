@@ -7,7 +7,7 @@ const authenticate = async (req, res, next) => {
   try {
     // 从请求头获取令牌
     const authHeader = req.headers.authorization;
-    
+
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({
         success: false,
@@ -72,22 +72,22 @@ const authenticate = async (req, res, next) => {
     }
 
     // 检查高级功能访问权限
-    user.hasPermission = (feature) => {
+    user.hasPermission = feature => {
       if (user.is_premium) {
         // 检查会员是否过期
         const now = new Date();
         const expiresAt = new Date(user.premium_expires_at);
         return expiresAt > now;
       }
-      
+
       // 基础功能权限检查
       const basicFeatures = [
         'basic_recording',
         'basic_statistics',
         'basic_reminders',
-        'basic_goals'
+        'basic_goals',
       ];
-      
+
       return basicFeatures.includes(feature);
     };
 
@@ -106,7 +106,7 @@ const authenticate = async (req, res, next) => {
           'UPDATE users SET last_login_at = CURRENT_TIMESTAMP WHERE id = ?',
           [user.id]
         );
-        
+
         await db.query(
           'UPDATE user_sessions SET last_used_at = CURRENT_TIMESTAMP WHERE session_token = ?',
           [session.session_token]
@@ -117,10 +117,9 @@ const authenticate = async (req, res, next) => {
     });
 
     next();
-
   } catch (error) {
     errorLogger.api(error, req);
-    
+
     return res.status(500).json({
       success: false,
       error: 'AUTHENTICATION_ERROR',
@@ -132,7 +131,7 @@ const authenticate = async (req, res, next) => {
 // 可选认证中间件（允许匿名访问，但如果有令牌则验证）
 const optionalAuth = async (req, res, next) => {
   const authHeader = req.headers.authorization;
-  
+
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     // 没有令牌，继续处理（匿名用户）
     req.user = null;
@@ -145,7 +144,7 @@ const optionalAuth = async (req, res, next) => {
 };
 
 // 权限检查中间件
-const requirePermission = (feature) => {
+const requirePermission = feature => {
   return (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({
@@ -156,8 +155,10 @@ const requirePermission = (feature) => {
     }
 
     if (!req.user.hasPermission(feature)) {
-      businessLogger.securityEvent('permission_denied', req.user.id, req.ip, { feature });
-      
+      businessLogger.securityEvent('permission_denied', req.user.id, req.ip, {
+        feature,
+      });
+
       return res.status(403).json({
         success: false,
         error: 'PERMISSION_DENIED',
@@ -183,12 +184,13 @@ const requireAdmin = async (req, res, next) => {
 
   try {
     // 检查用户是否为管理员（这里简化处理，实际应用中可以有更复杂的角色系统）
-    const query = 'SELECT role FROM user_roles WHERE user_id = ? AND role = "admin"';
+    const query =
+      'SELECT role FROM user_roles WHERE user_id = ? AND role = "admin"';
     const { rows: roles } = await db.query(query, [req.user.id]);
 
     if (roles.length === 0) {
       businessLogger.securityEvent('admin_access_denied', req.user.id, req.ip);
-      
+
       return res.status(403).json({
         success: false,
         error: 'ADMIN_REQUIRED',
@@ -198,10 +200,11 @@ const requireAdmin = async (req, res, next) => {
 
     req.user.isAdmin = true;
     next();
-
   } catch (error) {
-    errorLogger.database(error, 'check_admin_permission', { userId: req.user.id });
-    
+    errorLogger.database(error, 'check_admin_permission', {
+      userId: req.user.id,
+    });
+
     return res.status(500).json({
       success: false,
       error: 'PERMISSION_CHECK_ERROR',
@@ -236,10 +239,9 @@ const validateRefreshToken = async (req, res, next) => {
 
     req.refreshToken = refreshToken;
     next();
-
   } catch (error) {
     errorLogger.api(error, req);
-    
+
     return res.status(500).json({
       success: false,
       error: 'TOKEN_VALIDATION_ERROR',
@@ -252,7 +254,7 @@ const validateRefreshToken = async (req, res, next) => {
 const requireSelfOrAdmin = (userIdParam = 'userId') => {
   return async (req, res, next) => {
     const targetUserId = req.params[userIdParam] || req.body[userIdParam];
-    
+
     if (!targetUserId) {
       return res.status(400).json({
         success: false,
@@ -266,9 +268,9 @@ const requireSelfOrAdmin = (userIdParam = 'userId') => {
     const isAdmin = req.user.isAdmin || false;
 
     if (!isSelf && !isAdmin) {
-      businessLogger.securityEvent('unauthorized_access', req.user.id, req.ip, { 
-        targetUserId, 
-        action: req.method + ' ' + req.route?.path 
+      businessLogger.securityEvent('unauthorized_access', req.user.id, req.ip, {
+        targetUserId,
+        action: req.method + ' ' + req.route?.path,
       });
 
       return res.status(403).json({
@@ -301,8 +303,12 @@ const requireEmailVerification = (req, res, next) => {
 // 账户状态检查中间件
 const checkAccountStatus = (req, res, next) => {
   if (!req.user.is_active) {
-    businessLogger.securityEvent('inactive_account_access', req.user.id, req.ip);
-    
+    businessLogger.securityEvent(
+      'inactive_account_access',
+      req.user.id,
+      req.ip
+    );
+
     return res.status(403).json({
       success: false,
       error: 'ACCOUNT_INACTIVE',
@@ -327,12 +333,15 @@ const authenticateApiKey = async (req, res, next) => {
     }
 
     // 验证API密钥（这里简化处理）
-    const query = 'SELECT * FROM api_keys WHERE key_hash = ? AND is_active = true AND expires_at > NOW()';
+    const query =
+      'SELECT * FROM api_keys WHERE key_hash = ? AND is_active = true AND expires_at > NOW()';
     const { rows: keys } = await db.query(query, [apiKey]);
 
     if (keys.length === 0) {
-      businessLogger.securityEvent('invalid_api_key', null, req.ip, { apiKey: apiKey.substring(0, 8) + '...' });
-      
+      businessLogger.securityEvent('invalid_api_key', null, req.ip, {
+        apiKey: apiKey.substring(0, 8) + '...',
+      });
+
       return res.status(401).json({
         success: false,
         error: 'INVALID_API_KEY',
@@ -341,7 +350,7 @@ const authenticateApiKey = async (req, res, next) => {
     }
 
     const keyInfo = keys[0];
-    
+
     // 更新使用统计
     setImmediate(async () => {
       try {
@@ -350,16 +359,17 @@ const authenticateApiKey = async (req, res, next) => {
           [keyInfo.id]
         );
       } catch (error) {
-        errorLogger.database(error, 'update_api_key_usage', { keyId: keyInfo.id });
+        errorLogger.database(error, 'update_api_key_usage', {
+          keyId: keyInfo.id,
+        });
       }
     });
 
     req.apiKey = keyInfo;
     next();
-
   } catch (error) {
     errorLogger.api(error, req);
-    
+
     return res.status(500).json({
       success: false,
       error: 'API_KEY_VALIDATION_ERROR',

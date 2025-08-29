@@ -34,7 +34,6 @@ class EmailService {
       } else {
         logger.info('邮件服务初始化成功（开发环境，跳过验证）');
       }
-
     } catch (error) {
       logger.error('邮件服务初始化失败:', error);
       throw error;
@@ -58,7 +57,7 @@ class EmailService {
       };
 
       const result = await this.transporter.sendMail(mailOptions);
-      
+
       logger.info('邮件发送成功:', {
         to: options.to,
         subject: options.subject,
@@ -70,7 +69,6 @@ class EmailService {
         messageId: result.messageId,
         response: result.response,
       };
-
     } catch (error) {
       errorLogger.external('email_service', error, {
         to: options.to,
@@ -88,7 +86,10 @@ class EmailService {
   async sendVerificationEmail(email, name, verificationToken) {
     const verificationUrl = `${config.server.baseUrl || 'http://localhost:3000'}/verify-email?token=${verificationToken}`;
 
-    const emailTemplate = this.generateVerificationTemplate(name, verificationUrl);
+    const emailTemplate = this.generateVerificationTemplate(
+      name,
+      verificationUrl
+    );
 
     return await this.sendMail({
       to: email,
@@ -126,7 +127,10 @@ class EmailService {
 
   // 发送目标达成通知邮件
   async sendGoalAchievementEmail(email, name, achievementData) {
-    const emailTemplate = this.generateGoalAchievementTemplate(name, achievementData);
+    const emailTemplate = this.generateGoalAchievementTemplate(
+      name,
+      achievementData
+    );
 
     return await this.sendMail({
       to: email,

@@ -50,7 +50,9 @@ class UserController {
         LIMIT 5
       `;
 
-      const { rows: recentRecords } = await db.query(recentRecordsQuery, [userId]);
+      const { rows: recentRecords } = await db.query(recentRecordsQuery, [
+        userId,
+      ]);
 
       // 获取本周统计
       const weekStatsQuery = `
@@ -75,7 +77,7 @@ class UserController {
         username: user.username,
         fullName: user.full_name,
         avatarUrl: user.avatar_url,
-        
+
         // 个人信息
         personalInfo: {
           gender: user.gender,
@@ -141,10 +143,9 @@ class UserController {
         success: true,
         data: userData,
       });
-
     } catch (error) {
       errorLogger.api(error, req);
-      
+
       res.status(500).json({
         success: false,
         error: 'GET_PROFILE_ERROR',
@@ -243,10 +244,9 @@ class UserController {
           updatedFields: Object.keys(fieldsToUpdate),
         },
       });
-
     } catch (error) {
       errorLogger.api(error, req);
-      
+
       res.status(500).json({
         success: false,
         error: 'UPDATE_PROFILE_ERROR',
@@ -287,13 +287,13 @@ class UserController {
 
       // 验证当前密码
       const isCurrentPasswordValid = await AuthService.verifyPassword(
-        currentPassword, 
+        currentPassword,
         user.password_hash
       );
 
       if (!isCurrentPasswordValid) {
         businessLogger.securityEvent('password_change_failed', userId, req.ip, {
-          reason: 'invalid_current_password'
+          reason: 'invalid_current_password',
         });
 
         return res.status(400).json({
@@ -304,7 +304,10 @@ class UserController {
       }
 
       // 检查新密码是否与当前密码相同
-      const isSamePassword = await AuthService.verifyPassword(newPassword, user.password_hash);
+      const isSamePassword = await AuthService.verifyPassword(
+        newPassword,
+        user.password_hash
+      );
       if (isSamePassword) {
         return res.status(400).json({
           success: false,
@@ -338,10 +341,9 @@ class UserController {
         success: true,
         message: '密码修改成功',
       });
-
     } catch (error) {
       errorLogger.api(error, req);
-      
+
       res.status(500).json({
         success: false,
         error: 'CHANGE_PASSWORD_ERROR',
@@ -389,10 +391,9 @@ class UserController {
           avatarUrl,
         },
       });
-
     } catch (error) {
       errorLogger.api(error, req);
-      
+
       res.status(500).json({
         success: false,
         error: 'UPLOAD_AVATAR_ERROR',
@@ -421,10 +422,9 @@ class UserController {
         success: true,
         message: '头像删除成功',
       });
-
     } catch (error) {
       errorLogger.api(error, req);
-      
+
       res.status(500).json({
         success: false,
         error: 'DELETE_AVATAR_ERROR',
@@ -452,16 +452,20 @@ class UserController {
             dateCondition = 'AND DATE(recorded_at) = CURDATE()';
             break;
           case 'week':
-            dateCondition = 'AND recorded_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)';
+            dateCondition =
+              'AND recorded_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)';
             break;
           case 'month':
-            dateCondition = 'AND recorded_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)';
+            dateCondition =
+              'AND recorded_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)';
             break;
           case 'year':
-            dateCondition = 'AND recorded_at >= DATE_SUB(NOW(), INTERVAL 1 YEAR)';
+            dateCondition =
+              'AND recorded_at >= DATE_SUB(NOW(), INTERVAL 1 YEAR)';
             break;
           default:
-            dateCondition = 'AND recorded_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)';
+            dateCondition =
+              'AND recorded_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)';
         }
       }
 
@@ -488,7 +492,10 @@ class UserController {
         WHERE user_id = ? AND deleted_at IS NULL ${dateCondition}
       `;
 
-      const { rows: stats } = await db.query(statsQuery, [userId, ...dateParams]);
+      const { rows: stats } = await db.query(statsQuery, [
+        userId,
+        ...dateParams,
+      ]);
       const statistics = stats[0] || {};
 
       // 获取每日统计数据
@@ -504,7 +511,10 @@ class UserController {
         ORDER BY date DESC
       `;
 
-      const { rows: dailyStats } = await db.query(dailyStatsQuery, [userId, ...dateParams]);
+      const { rows: dailyStats } = await db.query(dailyStatsQuery, [
+        userId,
+        ...dateParams,
+      ]);
 
       // 获取用户目标
       const goalQuery = `
@@ -516,33 +526,68 @@ class UserController {
       `;
 
       const { rows: goals } = await db.query(goalQuery, [userId]);
-      const currentGoal = goals[0] || { target_value: 2000, current_streak: 0, best_streak: 0 };
+      const currentGoal = goals[0] || {
+        target_value: 2000,
+        current_streak: 0,
+        best_streak: 0,
+      };
 
       // 计算目标达成率
-      const goalAchievementDays = dailyStats.filter(day => 
-        day.daily_intake >= currentGoal.target_value
+      const goalAchievementDays = dailyStats.filter(
+        day => day.daily_intake >= currentGoal.target_value
       ).length;
 
-      const goalAchievementRate = dailyStats.length > 0 
-        ? (goalAchievementDays / dailyStats.length) * 100 
-        : 0;
+      const goalAchievementRate =
+        dailyStats.length > 0
+          ? (goalAchievementDays / dailyStats.length) * 100
+          : 0;
 
       // 计算总摄入量的饮品分布
       const totalIntake = parseInt(statistics.total_intake) || 0;
-      const drinkDistribution = totalIntake > 0 ? {
-        water: ((parseInt(statistics.water_intake) || 0) / totalIntake * 100).toFixed(1),
-        tea: ((parseInt(statistics.tea_intake) || 0) / totalIntake * 100).toFixed(1),
-        coffee: ((parseInt(statistics.coffee_intake) || 0) / totalIntake * 100).toFixed(1),
-        other: ((parseInt(statistics.other_intake) || 0) / totalIntake * 100).toFixed(1),
-      } : { water: 0, tea: 0, coffee: 0, other: 0 };
+      const drinkDistribution =
+        totalIntake > 0
+          ? {
+              water: (
+                ((parseInt(statistics.water_intake) || 0) / totalIntake) *
+                100
+              ).toFixed(1),
+              tea: (
+                ((parseInt(statistics.tea_intake) || 0) / totalIntake) *
+                100
+              ).toFixed(1),
+              coffee: (
+                ((parseInt(statistics.coffee_intake) || 0) / totalIntake) *
+                100
+              ).toFixed(1),
+              other: (
+                ((parseInt(statistics.other_intake) || 0) / totalIntake) *
+                100
+              ).toFixed(1),
+            }
+          : { water: 0, tea: 0, coffee: 0, other: 0 };
 
       // 计算时间分布
-      const timeDistribution = totalIntake > 0 ? {
-        morning: ((parseInt(statistics.morning_intake) || 0) / totalIntake * 100).toFixed(1),
-        afternoon: ((parseInt(statistics.afternoon_intake) || 0) / totalIntake * 100).toFixed(1),
-        evening: ((parseInt(statistics.evening_intake) || 0) / totalIntake * 100).toFixed(1),
-        night: ((parseInt(statistics.night_intake) || 0) / totalIntake * 100).toFixed(1),
-      } : { morning: 0, afternoon: 0, evening: 0, night: 0 };
+      const timeDistribution =
+        totalIntake > 0
+          ? {
+              morning: (
+                ((parseInt(statistics.morning_intake) || 0) / totalIntake) *
+                100
+              ).toFixed(1),
+              afternoon: (
+                ((parseInt(statistics.afternoon_intake) || 0) / totalIntake) *
+                100
+              ).toFixed(1),
+              evening: (
+                ((parseInt(statistics.evening_intake) || 0) / totalIntake) *
+                100
+              ).toFixed(1),
+              night: (
+                ((parseInt(statistics.night_intake) || 0) / totalIntake) *
+                100
+              ).toFixed(1),
+            }
+          : { morning: 0, afternoon: 0, evening: 0, night: 0 };
 
       res.json({
         success: true,
@@ -576,14 +621,14 @@ class UserController {
             intake: parseInt(day.daily_intake),
             records: parseInt(day.daily_records),
             averagePerRecord: parseFloat(day.avg_amount_per_record).toFixed(1),
-            goalAchieved: parseInt(day.daily_intake) >= currentGoal.target_value,
+            goalAchieved:
+              parseInt(day.daily_intake) >= currentGoal.target_value,
           })),
         },
       });
-
     } catch (error) {
       errorLogger.api(error, req);
-      
+
       res.status(500).json({
         success: false,
         error: 'GET_STATISTICS_ERROR',
@@ -629,12 +674,20 @@ class UserController {
       }
 
       const user = users[0];
-      const isPasswordValid = await AuthService.verifyPassword(password, user.password_hash);
+      const isPasswordValid = await AuthService.verifyPassword(
+        password,
+        user.password_hash
+      );
 
       if (!isPasswordValid) {
-        businessLogger.securityEvent('account_deletion_failed', userId, req.ip, {
-          reason: 'invalid_password'
-        });
+        businessLogger.securityEvent(
+          'account_deletion_failed',
+          userId,
+          req.ip,
+          {
+            reason: 'invalid_password',
+          }
+        );
 
         return res.status(400).json({
           success: false,
@@ -644,7 +697,7 @@ class UserController {
       }
 
       // 执行账户删除（软删除）
-      await db.transaction(async (connection) => {
+      await db.transaction(async connection => {
         // 软删除用户记录
         await connection.execute(
           'UPDATE users SET deleted_at = NOW(), is_active = false WHERE id = ?',
@@ -682,10 +735,9 @@ class UserController {
         success: true,
         message: '账户删除成功',
       });
-
     } catch (error) {
       errorLogger.api(error, req);
-      
+
       res.status(500).json({
         success: false,
         error: 'DELETE_ACCOUNT_ERROR',
@@ -720,7 +772,13 @@ const updateProfileValidation = [
     .withMessage('体重应在30-300kg之间'),
   body('activityLevel')
     .optional()
-    .isIn(['sedentary', 'lightly_active', 'moderately_active', 'very_active', 'extremely_active'])
+    .isIn([
+      'sedentary',
+      'lightly_active',
+      'moderately_active',
+      'very_active',
+      'extremely_active',
+    ])
     .withMessage('活动水平值无效'),
   body('dailyWaterGoal')
     .optional()
@@ -734,10 +792,7 @@ const updateProfileValidation = [
     .optional()
     .matches(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)
     .withMessage('睡眠时间格式无效'),
-  body('timezone')
-    .optional()
-    .isLength({ max: 50 })
-    .withMessage('时区格式无效'),
+  body('timezone').optional().isLength({ max: 50 }).withMessage('时区格式无效'),
   body('locale')
     .optional()
     .isLength({ max: 10 })
@@ -745,9 +800,7 @@ const updateProfileValidation = [
 ];
 
 const changePasswordValidation = [
-  body('currentPassword')
-    .notEmpty()
-    .withMessage('请输入当前密码'),
+  body('currentPassword').notEmpty().withMessage('请输入当前密码'),
   body('newPassword')
     .isLength({ min: 8 })
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
@@ -755,9 +808,7 @@ const changePasswordValidation = [
 ];
 
 const deleteAccountValidation = [
-  body('password')
-    .notEmpty()
-    .withMessage('请输入密码确认'),
+  body('password').notEmpty().withMessage('请输入密码确认'),
   body('confirmDelete')
     .equals('DELETE_ACCOUNT')
     .withMessage('请输入确认文本: DELETE_ACCOUNT'),
@@ -768,14 +819,8 @@ const statisticsValidation = [
     .optional()
     .isIn(['today', 'week', 'month', 'year'])
     .withMessage('时间周期参数无效'),
-  query('startDate')
-    .optional()
-    .isISO8601()
-    .withMessage('开始日期格式无效'),
-  query('endDate')
-    .optional()
-    .isISO8601()
-    .withMessage('结束日期格式无效'),
+  query('startDate').optional().isISO8601().withMessage('开始日期格式无效'),
+  query('endDate').optional().isISO8601().withMessage('结束日期格式无效'),
 ];
 
 export {

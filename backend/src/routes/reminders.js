@@ -40,15 +40,15 @@ router.get('/', async (req, res) => {
       success: true,
       data: {
         reminders: [],
-        total: 0
+        total: 0,
       },
-      message: '获取提醒列表成功'
+      message: '获取提醒列表成功',
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       error: 'INTERNAL_SERVER_ERROR',
-      message: '获取提醒列表失败'
+      message: '获取提醒列表失败',
     });
   }
 });
@@ -114,15 +114,15 @@ router.post('/', strictRateLimit, async (req, res) => {
         id: Date.now(), // 临时ID
         ...req.body,
         userId: req.user.id,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
       },
-      message: '提醒创建成功'
+      message: '提醒创建成功',
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       error: 'INTERNAL_SERVER_ERROR',
-      message: '提醒创建失败'
+      message: '提醒创建失败',
     });
   }
 });
@@ -155,7 +155,7 @@ router.post('/', strictRateLimit, async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     // 临时响应，实际实现需要调用控制器
     res.json({
       success: true,
@@ -167,15 +167,15 @@ router.get('/:id', async (req, res) => {
         type: 'daily',
         isActive: true,
         userId: req.user.id,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
       },
-      message: '获取提醒详情成功'
+      message: '获取提醒详情成功',
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       error: 'INTERNAL_SERVER_ERROR',
-      message: '获取提醒详情失败'
+      message: '获取提醒详情失败',
     });
   }
 });
@@ -232,7 +232,7 @@ router.get('/:id', async (req, res) => {
 router.put('/:id', strictRateLimit, async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     // 临时响应，实际实现需要调用控制器
     res.json({
       success: true,
@@ -240,15 +240,15 @@ router.put('/:id', strictRateLimit, async (req, res) => {
         id,
         ...req.body,
         userId: req.user.id,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       },
-      message: '提醒更新成功'
+      message: '提醒更新成功',
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       error: 'INTERNAL_SERVER_ERROR',
-      message: '提醒更新失败'
+      message: '提醒更新失败',
     });
   }
 });
@@ -281,18 +281,18 @@ router.put('/:id', strictRateLimit, async (req, res) => {
 router.delete('/:id', strictRateLimit, async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     // 临时响应，实际实现需要调用控制器
     res.json({
       success: true,
       data: { id },
-      message: '提醒删除成功'
+      message: '提醒删除成功',
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       error: 'INTERNAL_SERVER_ERROR',
-      message: '提醒删除失败'
+      message: '提醒删除失败',
     });
   }
 });
@@ -325,22 +325,22 @@ router.delete('/:id', strictRateLimit, async (req, res) => {
 router.patch('/:id/toggle', strictRateLimit, async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     // 临时响应，实际实现需要调用控制器
     res.json({
       success: true,
       data: {
         id,
         isActive: !req.body.currentStatus, // 切换状态
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       },
-      message: '提醒状态切换成功'
+      message: '提醒状态切换成功',
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       error: 'INTERNAL_SERVER_ERROR',
-      message: '提醒状态切换失败'
+      message: '提醒状态切换失败',
     });
   }
 });

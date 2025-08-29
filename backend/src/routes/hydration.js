@@ -6,12 +6,12 @@ import {
   getRecordsValidation,
   recordIdValidation,
   updateRecordValidation,
-  batchRecordsValidation
+  batchRecordsValidation,
 } from '../controllers/hydrationController.js';
 import {
   authenticate,
   checkAccountStatus,
-  requirePermission
+  requirePermission,
 } from '../middlewares/auth.js';
 
 const router = express.Router();
@@ -178,7 +178,13 @@ router.use(checkAccountStatus);
  *       401:
  *         description: 未授权
  */
-router.post('/records', recordCreateLimiter, requirePermission('basic_recording'), addRecordValidation, HydrationController.addRecord);
+router.post(
+  '/records',
+  recordCreateLimiter,
+  requirePermission('basic_recording'),
+  addRecordValidation,
+  HydrationController.addRecord
+);
 
 /**
  * @swagger
@@ -273,7 +279,12 @@ router.post('/records', recordCreateLimiter, requirePermission('basic_recording'
  *       401:
  *         description: 未授权
  */
-router.get('/records', generalLimiter, getRecordsValidation, HydrationController.getRecords);
+router.get(
+  '/records',
+  generalLimiter,
+  getRecordsValidation,
+  HydrationController.getRecords
+);
 
 /**
  * @swagger
@@ -307,7 +318,12 @@ router.get('/records', generalLimiter, getRecordsValidation, HydrationController
  *       401:
  *         description: 未授权
  */
-router.get('/records/:recordId', generalLimiter, recordIdValidation, HydrationController.getRecord);
+router.get(
+  '/records/:recordId',
+  generalLimiter,
+  recordIdValidation,
+  HydrationController.getRecord
+);
 
 /**
  * @swagger
@@ -363,7 +379,12 @@ router.get('/records/:recordId', generalLimiter, recordIdValidation, HydrationCo
  *       401:
  *         description: 未授权
  */
-router.put('/records/:recordId', generalLimiter, updateRecordValidation, HydrationController.updateRecord);
+router.put(
+  '/records/:recordId',
+  generalLimiter,
+  updateRecordValidation,
+  HydrationController.updateRecord
+);
 
 /**
  * @swagger
@@ -388,7 +409,12 @@ router.put('/records/:recordId', generalLimiter, updateRecordValidation, Hydrati
  *       401:
  *         description: 未授权
  */
-router.delete('/records/:recordId', generalLimiter, recordIdValidation, HydrationController.deleteRecord);
+router.delete(
+  '/records/:recordId',
+  generalLimiter,
+  recordIdValidation,
+  HydrationController.deleteRecord
+);
 
 /**
  * @swagger
@@ -475,7 +501,13 @@ router.delete('/records/:recordId', generalLimiter, recordIdValidation, Hydratio
  *       401:
  *         description: 未授权
  */
-router.post('/records/batch', recordCreateLimiter, requirePermission('basic_recording'), batchRecordsValidation, HydrationController.addBatchRecords);
+router.post(
+  '/records/batch',
+  recordCreateLimiter,
+  requirePermission('basic_recording'),
+  batchRecordsValidation,
+  HydrationController.addBatchRecords
+);
 
 /**
  * @swagger

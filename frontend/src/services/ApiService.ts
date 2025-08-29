@@ -34,7 +34,7 @@ class ApiService {
       timeout: API_CONFIG.TIMEOUT,
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
+        Accept: 'application/json',
       },
     });
 
@@ -44,7 +44,7 @@ class ApiService {
   private setupInterceptors() {
     // Request interceptor
     this.api.interceptors.request.use(
-      async (config) => {
+      async config => {
         // Check network connectivity
         const netInfo = await NetInfo.fetch();
         if (!netInfo.isConnected) {
@@ -55,7 +55,9 @@ class ApiService {
         }
 
         // Add auth token if available
-        const token = await StorageService.getSecureItem(STORAGE_KEYS.AUTH_TOKEN);
+        const token = await StorageService.getSecureItem(
+          STORAGE_KEYS.AUTH_TOKEN
+        );
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -69,17 +71,17 @@ class ApiService {
 
         return config;
       },
-      (error) => {
+      error => {
         return Promise.reject(this.handleError(error));
       }
     );
 
     // Response interceptor
     this.api.interceptors.response.use(
-      (response) => {
+      response => {
         return response;
       },
-      async (error) => {
+      async error => {
         const originalRequest = error.config;
 
         // Handle 401 errors with token refresh
@@ -88,27 +90,37 @@ class ApiService {
             // If already refreshing, queue the request
             return new Promise((resolve, reject) => {
               this.failedQueue.push({ resolve, reject });
-            }).then(token => {
-              originalRequest.headers.Authorization = `Bearer ${token}`;
-              return this.api(originalRequest);
-            }).catch(err => {
-              return Promise.reject(err);
-            });
+            })
+              .then(token => {
+                originalRequest.headers.Authorization = `Bearer ${token}`;
+                return this.api(originalRequest);
+              })
+              .catch(err => {
+                return Promise.reject(err);
+              });
           }
 
           originalRequest._retry = true;
           this.isRefreshing = true;
 
           try {
-            const refreshToken = await StorageService.getSecureItem(STORAGE_KEYS.REFRESH_TOKEN);
+            const refreshToken = await StorageService.getSecureItem(
+              STORAGE_KEYS.REFRESH_TOKEN
+            );
             if (refreshToken) {
               const response = await this.refreshToken(refreshToken);
               const newToken = response.data.token;
               const newRefreshToken = response.data.refreshToken;
 
               // Store new tokens
-              await StorageService.setSecureItem(STORAGE_KEYS.AUTH_TOKEN, newToken);
-              await StorageService.setSecureItem(STORAGE_KEYS.REFRESH_TOKEN, newRefreshToken);
+              await StorageService.setSecureItem(
+                STORAGE_KEYS.AUTH_TOKEN,
+                newToken
+              );
+              await StorageService.setSecureItem(
+                STORAGE_KEYS.REFRESH_TOKEN,
+                newRefreshToken
+              );
 
               // Retry all queued requests
               this.processQueue(null, newToken);
@@ -119,11 +131,11 @@ class ApiService {
             }
           } catch (refreshError) {
             this.processQueue(refreshError, null);
-            
+
             // Clear invalid tokens
             await StorageService.removeSecureItem(STORAGE_KEYS.AUTH_TOKEN);
             await StorageService.removeSecureItem(STORAGE_KEYS.REFRESH_TOKEN);
-            
+
             // Redirect to login would be handled by the auth slice
             throw refreshError;
           } finally {
@@ -176,7 +188,8 @@ class ApiService {
     // Map HTTP status codes to error codes
     let errorCode = ERROR_CODES.UNKNOWN_ERROR;
     if (status >= 400 && status < 500) {
-      errorCode = status === 401 ? ERROR_CODES.AUTH_ERROR : ERROR_CODES.VALIDATION_ERROR;
+      errorCode =
+        status === 401 ? ERROR_CODES.AUTH_ERROR : ERROR_CODES.VALIDATION_ERROR;
     } else if (status >= 500) {
       errorCode = ERROR_CODES.SERVER_ERROR;
     }
@@ -187,7 +200,10 @@ class ApiService {
   }
 
   // Generic request methods
-  async get<T = any>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
+  async get<T = any>(
+    url: string,
+    config?: AxiosRequestConfig
+  ): Promise<ApiResponse<T>> {
     try {
       const response = await this.api.get(url, config);
       return this.formatResponse(response);
@@ -196,7 +212,11 @@ class ApiService {
     }
   }
 
-  async post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
+  async post<T = any>(
+    url: string,
+    data?: any,
+    config?: AxiosRequestConfig
+  ): Promise<ApiResponse<T>> {
     try {
       const response = await this.api.post(url, data, config);
       return this.formatResponse(response);
@@ -205,7 +225,11 @@ class ApiService {
     }
   }
 
-  async put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
+  async put<T = any>(
+    url: string,
+    data?: any,
+    config?: AxiosRequestConfig
+  ): Promise<ApiResponse<T>> {
     try {
       const response = await this.api.put(url, data, config);
       return this.formatResponse(response);
@@ -214,7 +238,11 @@ class ApiService {
     }
   }
 
-  async patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
+  async patch<T = any>(
+    url: string,
+    data?: any,
+    config?: AxiosRequestConfig
+  ): Promise<ApiResponse<T>> {
     try {
       const response = await this.api.patch(url, data, config);
       return this.formatResponse(response);
@@ -223,7 +251,10 @@ class ApiService {
     }
   }
 
-  async delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
+  async delete<T = any>(
+    url: string,
+    config?: AxiosRequestConfig
+  ): Promise<ApiResponse<T>> {
     try {
       const response = await this.api.delete(url, config);
       return this.formatResponse(response);
@@ -233,7 +264,11 @@ class ApiService {
   }
 
   // File upload method
-  async uploadFile<T = any>(url: string, file: any, progressCallback?: (progress: number) => void): Promise<ApiResponse<T>> {
+  async uploadFile<T = any>(
+    url: string,
+    file: any,
+    progressCallback?: (progress: number) => void
+  ): Promise<ApiResponse<T>> {
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -242,7 +277,7 @@ class ApiService {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-        onUploadProgress: (progressEvent) => {
+        onUploadProgress: progressEvent => {
           if (progressCallback && progressEvent.total) {
             const progress = (progressEvent.loaded / progressEvent.total) * 100;
             progressCallback(Math.round(progress));
@@ -258,7 +293,10 @@ class ApiService {
   }
 
   // Batch requests with retry logic
-  async batchRequest<T = any>(requests: Array<() => Promise<any>>, maxConcurrent = 3): Promise<T[]> {
+  async batchRequest<T = any>(
+    requests: Array<() => Promise<any>>,
+    maxConcurrent = 3
+  ): Promise<T[]> {
     const results: T[] = [];
     const errors: any[] = [];
 
@@ -267,7 +305,10 @@ class ApiService {
       const batch = requests.slice(i, i + maxConcurrent);
       const batchPromises = batch.map(async (request, index) => {
         try {
-          const result = await this.retryRequest(request, API_CONFIG.RETRY_ATTEMPTS);
+          const result = await this.retryRequest(
+            request,
+            API_CONFIG.RETRY_ATTEMPTS
+          );
           return { success: true, data: result, index: i + index };
         } catch (error) {
           return { success: false, error, index: i + index };
@@ -275,8 +316,8 @@ class ApiService {
       });
 
       const batchResults = await Promise.allSettled(batchPromises);
-      
-      batchResults.forEach((result) => {
+
+      batchResults.forEach(result => {
         if (result.status === 'fulfilled') {
           if (result.value.success) {
             results[result.value.index] = result.value.data;
@@ -314,9 +355,13 @@ class ApiService {
         lastError = error;
 
         // Don't retry certain errors
-        if (error.code === ERROR_CODES.AUTH_ERROR || 
-            error.code === ERROR_CODES.VALIDATION_ERROR ||
-            error.status === 400 || error.status === 401 || error.status === 403) {
+        if (
+          error.code === ERROR_CODES.AUTH_ERROR ||
+          error.code === ERROR_CODES.VALIDATION_ERROR ||
+          error.status === 400 ||
+          error.status === 401 ||
+          error.status === 403
+        ) {
           throw error;
         }
 
@@ -343,7 +388,7 @@ class ApiService {
       {
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
+          Accept: 'application/json',
         },
         timeout: API_CONFIG.TIMEOUT,
       }

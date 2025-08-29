@@ -1,11 +1,11 @@
 import { ApiService } from './ApiService';
-import { 
-  HydrationRecord, 
-  CreateRecordData, 
+import {
+  HydrationRecord,
+  CreateRecordData,
   DailyProgress,
   UserStatistics,
   PaginatedResponse,
-  ApiResponse 
+  ApiResponse,
 } from '@/types';
 
 export class HydrationService {
@@ -14,7 +14,10 @@ export class HydrationService {
   /**
    * Create a new hydration record
    */
-  static async createRecord(data: CreateRecordData, token: string): Promise<ApiResponse<HydrationRecord>> {
+  static async createRecord(
+    data: CreateRecordData,
+    token: string
+  ): Promise<ApiResponse<HydrationRecord>> {
     try {
       const response = await ApiService.post(`${this.BASE_URL}/records`, data, {
         headers: {
@@ -42,15 +45,17 @@ export class HydrationService {
   ): Promise<ApiResponse<PaginatedResponse<HydrationRecord>>> {
     try {
       const queryParams = new URLSearchParams();
-      
+
       if (options.page) queryParams.append('page', options.page.toString());
       if (options.limit) queryParams.append('limit', options.limit.toString());
-      if (options.start_date) queryParams.append('start_date', options.start_date);
+      if (options.start_date)
+        queryParams.append('start_date', options.start_date);
       if (options.end_date) queryParams.append('end_date', options.end_date);
-      if (options.drink_type) queryParams.append('drink_type', options.drink_type);
+      if (options.drink_type)
+        queryParams.append('drink_type', options.drink_type);
 
       const url = `${this.BASE_URL}/records${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-      
+
       const response = await ApiService.get(url, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -65,13 +70,19 @@ export class HydrationService {
   /**
    * Get a specific hydration record
    */
-  static async getRecord(recordId: number, token: string): Promise<ApiResponse<HydrationRecord>> {
+  static async getRecord(
+    recordId: number,
+    token: string
+  ): Promise<ApiResponse<HydrationRecord>> {
     try {
-      const response = await ApiService.get(`${this.BASE_URL}/records/${recordId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await ApiService.get(
+        `${this.BASE_URL}/records/${recordId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       return response;
     } catch (error: any) {
       throw new Error(error.message || 'Failed to fetch record');
@@ -82,16 +93,20 @@ export class HydrationService {
    * Update a hydration record
    */
   static async updateRecord(
-    recordId: number, 
-    data: Partial<CreateRecordData>, 
+    recordId: number,
+    data: Partial<CreateRecordData>,
     token: string
   ): Promise<ApiResponse<HydrationRecord>> {
     try {
-      const response = await ApiService.put(`${this.BASE_URL}/records/${recordId}`, data, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await ApiService.put(
+        `${this.BASE_URL}/records/${recordId}`,
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       return response;
     } catch (error: any) {
       throw new Error(error.message || 'Failed to update record');
@@ -101,13 +116,19 @@ export class HydrationService {
   /**
    * Delete a hydration record
    */
-  static async deleteRecord(recordId: number, token: string): Promise<ApiResponse<void>> {
+  static async deleteRecord(
+    recordId: number,
+    token: string
+  ): Promise<ApiResponse<void>> {
     try {
-      const response = await ApiService.delete(`${this.BASE_URL}/records/${recordId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await ApiService.delete(
+        `${this.BASE_URL}/records/${recordId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       return response;
     } catch (error: any) {
       throw new Error(error.message || 'Failed to delete record');
@@ -118,17 +139,21 @@ export class HydrationService {
    * Create multiple records (batch)
    */
   static async createRecords(
-    records: CreateRecordData[], 
+    records: CreateRecordData[],
     token: string
   ): Promise<ApiResponse<HydrationRecord[]>> {
     try {
-      const response = await ApiService.post(`${this.BASE_URL}/records/batch`, {
-        records,
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const response = await ApiService.post(
+        `${this.BASE_URL}/records/batch`,
+        {
+          records,
         },
-      });
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       return response;
     } catch (error: any) {
       throw new Error(error.message || 'Failed to create records');
@@ -138,7 +163,9 @@ export class HydrationService {
   /**
    * Get today's progress
    */
-  static async getTodayProgress(token: string): Promise<ApiResponse<DailyProgress>> {
+  static async getTodayProgress(
+    token: string
+  ): Promise<ApiResponse<DailyProgress>> {
     try {
       const response = await ApiService.get(`${this.BASE_URL}/today`, {
         headers: {
@@ -147,14 +174,17 @@ export class HydrationService {
       });
       return response;
     } catch (error: any) {
-      throw new Error(error.message || 'Failed to fetch today\'s progress');
+      throw new Error(error.message || "Failed to fetch today's progress");
     }
   }
 
   /**
    * Get daily progress for a specific date
    */
-  static async getDayProgress(date: string, token: string): Promise<ApiResponse<DailyProgress>> {
+  static async getDayProgress(
+    date: string,
+    token: string
+  ): Promise<ApiResponse<DailyProgress>> {
     try {
       const response = await ApiService.get(`${this.BASE_URL}/day/${date}`, {
         headers: {
@@ -171,8 +201,8 @@ export class HydrationService {
    * Get weekly progress
    */
   static async getWeeklyProgress(
-    startDate: string, 
-    endDate: string, 
+    startDate: string,
+    endDate: string,
     token: string
   ): Promise<ApiResponse<DailyProgress[]>> {
     try {
@@ -194,8 +224,8 @@ export class HydrationService {
    * Get monthly progress
    */
   static async getMonthlyProgress(
-    year: number, 
-    month: number, 
+    year: number,
+    month: number,
     token: string
   ): Promise<ApiResponse<DailyProgress[]>> {
     try {
@@ -226,13 +256,14 @@ export class HydrationService {
   ): Promise<ApiResponse<UserStatistics[]>> {
     try {
       const queryParams = new URLSearchParams();
-      
+
       if (options.period) queryParams.append('period', options.period);
-      if (options.start_date) queryParams.append('start_date', options.start_date);
+      if (options.start_date)
+        queryParams.append('start_date', options.start_date);
       if (options.end_date) queryParams.append('end_date', options.end_date);
 
       const url = `/users/statistics${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-      
+
       const response = await ApiService.get(url, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -256,7 +287,7 @@ export class HydrationService {
     try {
       const queryParams = new URLSearchParams();
       queryParams.append('format', format);
-      
+
       if (startDate) queryParams.append('start_date', startDate);
       if (endDate) queryParams.append('end_date', endDate);
 
@@ -278,7 +309,7 @@ export class HydrationService {
    * Import records from file
    */
   static async importRecords(
-    fileUri: string, 
+    fileUri: string,
     format: 'csv' | 'json',
     token: string
   ): Promise<ApiResponse<{ imported_count: number; failed_count: number }>> {
@@ -291,12 +322,16 @@ export class HydrationService {
       } as any);
       formData.append('format', format);
 
-      const response = await ApiService.post(`${this.BASE_URL}/import`, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      const response = await ApiService.post(
+        `${this.BASE_URL}/import`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
       return response;
     } catch (error: any) {
       throw new Error(error.message || 'Failed to import records');
@@ -306,13 +341,19 @@ export class HydrationService {
   /**
    * Get drink type suggestions
    */
-  static async getDrinkTypeSuggestions(query: string, token: string): Promise<ApiResponse<string[]>> {
+  static async getDrinkTypeSuggestions(
+    query: string,
+    token: string
+  ): Promise<ApiResponse<string[]>> {
     try {
-      const response = await ApiService.get(`${this.BASE_URL}/drink-types/suggestions?q=${query}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await ApiService.get(
+        `${this.BASE_URL}/drink-types/suggestions?q=${query}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       return response;
     } catch (error: any) {
       throw new Error(error.message || 'Failed to fetch suggestions');

@@ -49,23 +49,27 @@ class CronJobs {
 
   // 统计数据更新任务 - 每天凌晨1点执行
   startStatisticsUpdate() {
-    const job = cron.schedule(config.cron.statisticsUpdate, async () => {
-      try {
-        logger.info('开始执行统计数据更新任务');
-        
-        // 更新用户统计数据
-        await this.updateUserStatistics();
-        
-        // 更新系统统计数据
-        await this.updateSystemStatistics();
-        
-        logger.info('统计数据更新任务执行完成');
-      } catch (error) {
-        logger.error('统计数据更新任务执行失败:', error);
+    const job = cron.schedule(
+      config.cron.statisticsUpdate,
+      async () => {
+        try {
+          logger.info('开始执行统计数据更新任务');
+
+          // 更新用户统计数据
+          await this.updateUserStatistics();
+
+          // 更新系统统计数据
+          await this.updateSystemStatistics();
+
+          logger.info('统计数据更新任务执行完成');
+        } catch (error) {
+          logger.error('统计数据更新任务执行失败:', error);
+        }
+      },
+      {
+        timezone: 'Asia/Shanghai',
       }
-    }, {
-      timezone: 'Asia/Shanghai'
-    });
+    );
 
     this.jobs.set('statisticsUpdate', job);
     logger.info('统计数据更新任务已启动');
@@ -73,23 +77,27 @@ class CronJobs {
 
   // 提醒清理任务 - 每天凌晨2点执行
   startReminderCleanup() {
-    const job = cron.schedule(config.cron.reminderCleanup, async () => {
-      try {
-        logger.info('开始执行提醒清理任务');
-        
-        // 清理过期的提醒记录
-        await this.cleanupExpiredReminders();
-        
-        // 清理无效的推送token
-        await this.cleanupInvalidTokens();
-        
-        logger.info('提醒清理任务执行完成');
-      } catch (error) {
-        logger.error('提醒清理任务执行失败:', error);
+    const job = cron.schedule(
+      config.cron.reminderCleanup,
+      async () => {
+        try {
+          logger.info('开始执行提醒清理任务');
+
+          // 清理过期的提醒记录
+          await this.cleanupExpiredReminders();
+
+          // 清理无效的推送token
+          await this.cleanupInvalidTokens();
+
+          logger.info('提醒清理任务执行完成');
+        } catch (error) {
+          logger.error('提醒清理任务执行失败:', error);
+        }
+      },
+      {
+        timezone: 'Asia/Shanghai',
       }
-    }, {
-      timezone: 'Asia/Shanghai'
-    });
+    );
 
     this.jobs.set('reminderCleanup', job);
     logger.info('提醒清理任务已启动');
@@ -97,23 +105,27 @@ class CronJobs {
 
   // 会话清理任务 - 每天凌晨3点执行
   startSessionCleanup() {
-    const job = cron.schedule(config.cron.sessionCleanup, async () => {
-      try {
-        logger.info('开始执行会话清理任务');
-        
-        // 清理过期的Redis会话
-        await this.cleanupExpiredSessions();
-        
-        // 清理过期的刷新token
-        await this.cleanupExpiredRefreshTokens();
-        
-        logger.info('会话清理任务执行完成');
-      } catch (error) {
-        logger.error('会话清理任务执行失败:', error);
+    const job = cron.schedule(
+      config.cron.sessionCleanup,
+      async () => {
+        try {
+          logger.info('开始执行会话清理任务');
+
+          // 清理过期的Redis会话
+          await this.cleanupExpiredSessions();
+
+          // 清理过期的刷新token
+          await this.cleanupExpiredRefreshTokens();
+
+          logger.info('会话清理任务执行完成');
+        } catch (error) {
+          logger.error('会话清理任务执行失败:', error);
+        }
+      },
+      {
+        timezone: 'Asia/Shanghai',
       }
-    }, {
-      timezone: 'Asia/Shanghai'
-    });
+    );
 
     this.jobs.set('sessionCleanup', job);
     logger.info('会话清理任务已启动');
@@ -121,24 +133,28 @@ class CronJobs {
 
   // 数据库健康检查任务 - 每小时执行一次
   startDatabaseHealthCheck() {
-    const job = cron.schedule('0 * * * *', async () => {
-      try {
-        logger.info('开始执行数据库健康检查');
-        
-        const health = await db.healthCheck();
-        
-        if (!health.mysql || !health.redis) {
-          logger.error('数据库健康检查失败:', health);
-          // 这里可以添加告警逻辑
-        } else {
-          logger.info('数据库健康检查正常');
+    const job = cron.schedule(
+      '0 * * * *',
+      async () => {
+        try {
+          logger.info('开始执行数据库健康检查');
+
+          const health = await db.healthCheck();
+
+          if (!health.mysql || !health.redis) {
+            logger.error('数据库健康检查失败:', health);
+            // 这里可以添加告警逻辑
+          } else {
+            logger.info('数据库健康检查正常');
+          }
+        } catch (error) {
+          logger.error('数据库健康检查任务执行失败:', error);
         }
-      } catch (error) {
-        logger.error('数据库健康检查任务执行失败:', error);
+      },
+      {
+        timezone: 'Asia/Shanghai',
       }
-    }, {
-      timezone: 'Asia/Shanghai'
-    });
+    );
 
     this.jobs.set('databaseHealthCheck', job);
     logger.info('数据库健康检查任务已启动');
@@ -178,23 +194,31 @@ class CronJobs {
       FROM hydration_records 
       WHERE DATE(recorded_at) = ?
     `;
-    const { rows: activeUsersResult } = await db.query(activeUsersQuery, [dateStr]);
-    
+    const { rows: activeUsersResult } = await db.query(activeUsersQuery, [
+      dateStr,
+    ]);
+
     // 统计昨天的总记录数
     const totalRecordsQuery = `
       SELECT COUNT(*) as total_records
       FROM hydration_records 
       WHERE DATE(recorded_at) = ?
     `;
-    const { rows: totalRecordsResult } = await db.query(totalRecordsQuery, [dateStr]);
+    const { rows: totalRecordsResult } = await db.query(totalRecordsQuery, [
+      dateStr,
+    ]);
 
     // 将统计数据缓存到Redis
-    await db.setCache(`stats:daily:${dateStr}`, {
-      date: dateStr,
-      activeUsers: activeUsersResult[0].active_users,
-      totalRecords: totalRecordsResult[0].total_records,
-      updatedAt: new Date().toISOString()
-    }, 86400 * 7); // 保存7天
+    await db.setCache(
+      `stats:daily:${dateStr}`,
+      {
+        date: dateStr,
+        activeUsers: activeUsersResult[0].active_users,
+        totalRecords: totalRecordsResult[0].total_records,
+        updatedAt: new Date().toISOString(),
+      },
+      86400 * 7
+    ); // 保存7天
 
     logger.info('系统统计数据更新完成');
   }
@@ -209,7 +233,7 @@ class CronJobs {
       WHERE is_active = 0 
       AND updated_at < ?
     `;
-    
+
     const { rows } = await db.query(query, [thirtyDaysAgo]);
     logger.info(`清理了 ${rows.affectedRows || 0} 条过期提醒记录`);
   }
@@ -233,7 +257,7 @@ class CronJobs {
       DELETE FROM refresh_tokens 
       WHERE expires_at < NOW()
     `;
-    
+
     const { rows } = await db.query(query);
     logger.info(`清理了 ${rows.affectedRows || 0} 个过期刷新token`);
   }
@@ -245,8 +269,8 @@ class CronJobs {
       jobCount: this.jobs.size,
       jobs: Array.from(this.jobs.keys()).map(name => ({
         name,
-        running: this.jobs.get(name).running
-      }))
+        running: this.jobs.get(name).running,
+      })),
     };
   }
 }

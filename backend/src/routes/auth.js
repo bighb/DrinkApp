@@ -5,11 +5,9 @@ import {
   registerValidation,
   loginValidation,
   emailValidation,
-  resetPasswordValidation
+  resetPasswordValidation,
 } from '../controllers/authController.js';
-import {
-  validateRefreshToken
-} from '../middlewares/auth.js';
+import { validateRefreshToken } from '../middlewares/auth.js';
 
 const router = express.Router();
 
@@ -55,7 +53,7 @@ const generalLimiter = rateLimit({
  *           type: string
  *           format: date-time
  *           description: 令牌过期时间
- *     
+ *
  *     UserProfile:
  *       type: object
  *       properties:
@@ -166,7 +164,12 @@ const generalLimiter = rateLimit({
  *       400:
  *         description: 输入验证失败
  */
-router.post('/register', authLimiter, registerValidation, AuthController.register);
+router.post(
+  '/register',
+  authLimiter,
+  registerValidation,
+  AuthController.register
+);
 
 /**
  * @swagger
@@ -263,7 +266,12 @@ router.post('/login', authLimiter, loginValidation, AuthController.login);
  *       401:
  *         description: 刷新令牌无效或过期
  */
-router.post('/refresh', generalLimiter, validateRefreshToken, AuthController.refreshToken);
+router.post(
+  '/refresh',
+  generalLimiter,
+  validateRefreshToken,
+  AuthController.refreshToken
+);
 
 /**
  * @swagger
@@ -365,7 +373,11 @@ router.get('/sessions', generalLimiter, AuthController.getSessions);
  *       401:
  *         description: 未授权
  */
-router.delete('/sessions/:sessionToken', generalLimiter, AuthController.revokeSession);
+router.delete(
+  '/sessions/:sessionToken',
+  generalLimiter,
+  AuthController.revokeSession
+);
 
 /**
  * @swagger
@@ -383,7 +395,11 @@ router.delete('/sessions/:sessionToken', generalLimiter, AuthController.revokeSe
  *       401:
  *         description: 未授权
  */
-router.post('/verify-email', generalLimiter, AuthController.sendVerificationEmail);
+router.post(
+  '/verify-email',
+  generalLimiter,
+  AuthController.sendVerificationEmail
+);
 
 /**
  * @swagger
@@ -409,7 +425,11 @@ router.post('/verify-email', generalLimiter, AuthController.sendVerificationEmai
  *       400:
  *         description: 令牌无效或已过期
  */
-router.post('/verify-email/confirm', generalLimiter, AuthController.verifyEmail);
+router.post(
+  '/verify-email/confirm',
+  generalLimiter,
+  AuthController.verifyEmail
+);
 
 /**
  * @swagger
@@ -436,7 +456,12 @@ router.post('/verify-email/confirm', generalLimiter, AuthController.verifyEmail)
  *       400:
  *         description: 输入验证失败
  */
-router.post('/forgot-password', authLimiter, emailValidation, AuthController.sendPasswordResetEmail);
+router.post(
+  '/forgot-password',
+  authLimiter,
+  emailValidation,
+  AuthController.sendPasswordResetEmail
+);
 
 /**
  * @swagger
@@ -467,6 +492,11 @@ router.post('/forgot-password', authLimiter, emailValidation, AuthController.sen
  *       400:
  *         description: 令牌无效或已过期
  */
-router.post('/reset-password', authLimiter, resetPasswordValidation, AuthController.resetPassword);
+router.post(
+  '/reset-password',
+  authLimiter,
+  resetPasswordValidation,
+  AuthController.resetPassword
+);
 
 export default router;

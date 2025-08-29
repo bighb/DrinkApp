@@ -19,17 +19,18 @@ export const AppNavigator: React.FC = () => {
   }
 
   // Check if user needs onboarding (new user without complete profile)
-  const needsOnboarding = isAuthenticated && user && (
-    !user.daily_water_goal || 
-    !user.wake_up_time || 
-    !user.sleep_time ||
-    !user.height ||
-    !user.weight
-  );
+  const needsOnboarding =
+    isAuthenticated &&
+    user &&
+    (!user.daily_water_goal ||
+      !user.wake_up_time ||
+      !user.sleep_time ||
+      !user.height ||
+      !user.weight);
 
   return (
-    <Stack.Navigator 
-      screenOptions={{ 
+    <Stack.Navigator
+      screenOptions={{
         headerShown: false,
         gestureEnabled: false, // Disable swipe back to prevent navigation issues
       }}

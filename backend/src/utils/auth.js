@@ -44,7 +44,10 @@ class AuthService {
         }
       );
     } catch (error) {
-      errorLogger.external('jwt', error, { action: 'generate_access_token', payload });
+      errorLogger.external('jwt', error, {
+        action: 'generate_access_token',
+        payload,
+      });
       throw new Error('访问令牌生成失败');
     }
   }
@@ -66,7 +69,10 @@ class AuthService {
         }
       );
     } catch (error) {
-      errorLogger.external('jwt', error, { action: 'generate_refresh_token', payload });
+      errorLogger.external('jwt', error, {
+        action: 'generate_refresh_token',
+        payload,
+      });
       throw new Error('刷新令牌生成失败');
     }
   }
@@ -123,7 +129,10 @@ class AuthService {
   static async createSession(userId, deviceInfo, req) {
     try {
       const sessionToken = uuidv4();
-      const refreshToken = this.generateRefreshToken({ userId, sessionId: sessionToken });
+      const refreshToken = this.generateRefreshToken({
+        userId,
+        sessionId: sessionToken,
+      });
       const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24小时
 
       // 获取地理位置信息（这里简化处理）
@@ -148,11 +157,14 @@ class AuthService {
         expiresAt,
         req.ip,
         req.headers['user-agent'],
-        JSON.stringify(locationInfo)
+        JSON.stringify(locationInfo),
       ]);
 
       // 生成访问令牌
-      const accessToken = this.generateAccessToken({ userId, sessionId: sessionToken });
+      const accessToken = this.generateAccessToken({
+        userId,
+        sessionId: sessionToken,
+      });
 
       // 记录登录日志
       businessLogger.userAction(userId, 'login', {
@@ -167,7 +179,6 @@ class AuthService {
         sessionToken,
         expiresAt,
       };
-
     } catch (error) {
       errorLogger.database(error, 'create_session', { userId, deviceInfo });
       throw new Error('创建用户会话失败');
@@ -179,7 +190,7 @@ class AuthService {
     try {
       // 验证刷新令牌
       const decoded = this.verifyRefreshToken(refreshToken);
-      
+
       // 查找会话
       const query = `
         SELECT us.*, u.is_active, u.deleted_at
@@ -231,7 +242,6 @@ class AuthService {
         refreshToken, // 返回原刷新令牌
         expiresAt: session.expires_at,
       };
-
     } catch (error) {
       errorLogger.api(error, req);
       throw error;
@@ -269,7 +279,6 @@ class AuthService {
       }
 
       return session;
-
     } catch (error) {
       errorLogger.database(error, 'validate_session', { sessionToken });
       return null;
@@ -298,7 +307,8 @@ class AuthService {
   static async removeAllUserSessions(userId) {
     try {
       // 获取所有活跃会话
-      const query = 'SELECT session_token FROM user_sessions WHERE user_id = ? AND is_active = true';
+      const query =
+        'SELECT session_token FROM user_sessions WHERE user_id = ? AND is_active = true';
       const { rows: sessions } = await db.query(query, [userId]);
 
       // 禁用所有会话
@@ -308,7 +318,7 @@ class AuthService {
       );
 
       // 从Redis缓存中删除所有会话
-      const deletePromises = sessions.map(session => 
+      const deletePromises = sessions.map(session =>
         db.deleteCache(`session:${session.session_token}`)
       );
       await Promise.all(deletePromises);
@@ -332,7 +342,7 @@ class AuthService {
       `;
 
       const { rows } = await db.query(query);
-      
+
       if (rows.affectedRows > 0) {
         logger.info(`清理了 ${rows.affectedRows} 个过期会话`);
       }
@@ -374,14 +384,15 @@ class AuthService {
         expiresAt: session.expires_at,
         ipAddress: session.ip_address,
         userAgent: session.user_agent,
-        locationInfo: session.location_info ? JSON.parse(session.location_info) : null,
+        locationInfo: session.location_info
+          ? JSON.parse(session.location_info)
+          : null,
         device: {
           name: session.device_name,
           type: session.device_type,
           platform: session.platform,
         },
       }));
-
     } catch (error) {
       errorLogger.database(error, 'get_user_active_sessions', { userId });
       return [];
@@ -406,7 +417,11 @@ class AuthService {
         }
       );
     } catch (error) {
-      errorLogger.external('jwt', error, { action: 'generate_reset_token', userId, email });
+      errorLogger.external('jwt', error, {
+        action: 'generate_reset_token',
+        userId,
+        email,
+      });
       throw new Error('重置令牌生成失败');
     }
   }
@@ -453,7 +468,11 @@ class AuthService {
         }
       );
     } catch (error) {
-      errorLogger.external('jwt', error, { action: 'generate_verification_token', userId, email });
+      errorLogger.external('jwt', error, {
+        action: 'generate_verification_token',
+        userId,
+        email,
+      });
       throw new Error('验证令牌生成失败');
     }
   }

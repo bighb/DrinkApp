@@ -2,8 +2,8 @@ import Constants from 'expo-constants';
 
 // API Configuration
 export const API_CONFIG = {
-  BASE_URL: __DEV__ 
-    ? 'http://localhost:3000/api' 
+  BASE_URL: __DEV__
+    ? 'http://localhost:3000/api'
     : 'https://api.hydrationtracker.com/api',
   TIMEOUT: 15000,
   RETRY_ATTEMPTS: 3,
@@ -15,21 +15,22 @@ export const APP_CONFIG = {
   NAME: 'HydrationTracker',
   VERSION: Constants.expoConfig?.version || '1.0.0',
   BUILD_NUMBER: Constants.expoConfig?.ios?.buildNumber || '1',
-  BUNDLE_ID: Constants.expoConfig?.ios?.bundleIdentifier || 'com.hydrationtracker.app',
-  
+  BUNDLE_ID:
+    Constants.expoConfig?.ios?.bundleIdentifier || 'com.hydrationtracker.app',
+
   // Default settings
   DEFAULT_WATER_GOAL: 2000, // ml
   DEFAULT_REMINDER_INTERVAL: 60, // minutes
   MIN_RECORD_AMOUNT: 50, // ml
   MAX_RECORD_AMOUNT: 2000, // ml
   MAX_DAILY_RECORDS: 50,
-  
+
   // Time settings
   DEFAULT_WAKE_TIME: '07:00',
   DEFAULT_SLEEP_TIME: '23:00',
   REMINDER_START_TIME: '07:00',
   REMINDER_END_TIME: '22:00',
-  
+
   // Analytics
   ANALYTICS_ENABLED: !__DEV__,
   CRASH_REPORTING_ENABLED: !__DEV__,
@@ -60,7 +61,7 @@ export const NOTIFICATION_CONFIG = {
       importance: 2, // LOW
     },
   },
-  
+
   // Default reminder messages
   REMINDER_MESSAGES: [
     '💧 Time to hydrate! Your body will thank you.',
@@ -189,7 +190,7 @@ export const CHART_CONFIG = {
     error: '#F44336',
     gradient: ['#2196F3', '#21CBF3'],
   },
-  
+
   // Time periods for statistics
   periods: {
     today: { name: 'Today', days: 1 },
@@ -222,13 +223,17 @@ export const ERROR_CODES = {
 } as const;
 
 export const ERROR_MESSAGES = {
-  [ERROR_CODES.NETWORK_ERROR]: 'Network connection failed. Please check your internet connection.',
+  [ERROR_CODES.NETWORK_ERROR]:
+    'Network connection failed. Please check your internet connection.',
   [ERROR_CODES.SERVER_ERROR]: 'Server error occurred. Please try again later.',
   [ERROR_CODES.VALIDATION_ERROR]: 'Please check your input and try again.',
   [ERROR_CODES.AUTH_ERROR]: 'Authentication failed. Please login again.',
-  [ERROR_CODES.PERMISSION_ERROR]: 'Permission denied. Please check app permissions.',
-  [ERROR_CODES.STORAGE_ERROR]: 'Storage error occurred. Please restart the app.',
-  [ERROR_CODES.UNKNOWN_ERROR]: 'An unexpected error occurred. Please try again.',
+  [ERROR_CODES.PERMISSION_ERROR]:
+    'Permission denied. Please check app permissions.',
+  [ERROR_CODES.STORAGE_ERROR]:
+    'Storage error occurred. Please restart the app.',
+  [ERROR_CODES.UNKNOWN_ERROR]:
+    'An unexpected error occurred. Please try again.',
 } as const;
 
 // Animation durations (milliseconds)

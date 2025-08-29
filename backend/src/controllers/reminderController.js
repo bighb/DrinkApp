@@ -27,7 +27,8 @@ class ReminderController {
 
       if (settings.length === 0) {
         // 创建默认设置
-        const defaultSettings = await this.createDefaultReminderSettings(userId);
+        const defaultSettings =
+          await this.createDefaultReminderSettings(userId);
         return res.json({
           success: true,
           data: defaultSettings,
@@ -53,10 +54,10 @@ class ReminderController {
       const responseData = {
         strategyType: setting.strategy_type,
         isEnabled: setting.is_enabled,
-        
+
         // 固定间隔设置
         fixedIntervalMinutes: setting.fixed_interval_minutes,
-        
+
         // 时间范围设置
         timeRange: {
           startTime: setting.start_time,
@@ -83,22 +84,36 @@ class ReminderController {
 
         // 通知设置
         notification: {
-          types: setting.notification_type ? setting.notification_type.split(',') : ['push'],
+          types: setting.notification_type
+            ? setting.notification_type.split(',')
+            : ['push'],
           sound: setting.notification_sound,
         },
 
         // 自定义消息
-        customMessages: setting.custom_messages ? JSON.parse(setting.custom_messages) : [],
+        customMessages: setting.custom_messages
+          ? JSON.parse(setting.custom_messages)
+          : [],
 
         // 统计信息
         statistics: {
           totalReminders: parseInt(reminderStats.total_reminders) || 0,
-          successRate: reminderStats.total_reminders > 0 
-            ? ((reminderStats.successful_reminders / reminderStats.total_reminders) * 100).toFixed(1)
-            : 0,
-          responseRate: reminderStats.total_reminders > 0
-            ? ((reminderStats.responded_reminders / reminderStats.total_reminders) * 100).toFixed(1) 
-            : 0,
+          successRate:
+            reminderStats.total_reminders > 0
+              ? (
+                  (reminderStats.successful_reminders /
+                    reminderStats.total_reminders) *
+                  100
+                ).toFixed(1)
+              : 0,
+          responseRate:
+            reminderStats.total_reminders > 0
+              ? (
+                  (reminderStats.responded_reminders /
+                    reminderStats.total_reminders) *
+                  100
+                ).toFixed(1)
+              : 0,
           averageResponseTime: parseFloat(reminderStats.avg_response_time) || 0,
         },
 
@@ -110,10 +125,9 @@ class ReminderController {
         success: true,
         data: responseData,
       });
-
     } catch (error) {
       errorLogger.api(error, req);
-      
+
       res.status(500).json({
         success: false,
         error: 'GET_REMINDER_SETTINGS_ERROR',
@@ -151,13 +165,16 @@ class ReminderController {
         weekend_end_time: updateData.timeRange?.weekendEndTime,
         consider_weather: updateData.intelligentSettings?.considerWeather,
         consider_activity: updateData.intelligentSettings?.considerActivity,
-        consider_previous_intake: updateData.intelligentSettings?.considerPreviousIntake,
+        consider_previous_intake:
+          updateData.intelligentSettings?.considerPreviousIntake,
         do_not_disturb_enabled: updateData.doNotDisturb?.enabled,
         dnd_start_time: updateData.doNotDisturb?.startTime,
         dnd_end_time: updateData.doNotDisturb?.endTime,
         notification_type: updateData.notification?.types?.join(','),
         notification_sound: updateData.notification?.sound,
-        custom_messages: updateData.customMessages ? JSON.stringify(updateData.customMessages) : null,
+        custom_messages: updateData.customMessages
+          ? JSON.stringify(updateData.customMessages)
+          : null,
       };
 
       // 过滤掉未定义的字段
@@ -182,7 +199,8 @@ class ReminderController {
       }
 
       // 检查设置是否存在
-      const existingQuery = 'SELECT id FROM reminder_settings WHERE user_id = ?';
+      const existingQuery =
+        'SELECT id FROM reminder_settings WHERE user_id = ?';
       const { rows: existing } = await db.query(existingQuery, [userId]);
 
       if (existing.length === 0) {
@@ -191,7 +209,7 @@ class ReminderController {
           INSERT INTO reminder_settings (user_id, ${Object.keys(fieldsToUpdate).join(', ')})
           VALUES (?, ${values.map(() => '?').join(', ')})
         `;
-        
+
         await db.query(createQuery, [userId, ...values]);
       } else {
         // 更新现有设置
@@ -211,7 +229,9 @@ class ReminderController {
           try {
             await this.scheduleNextReminder(userId);
           } catch (error) {
-            errorLogger.database(error, 'schedule_reminder_after_update', { userId });
+            errorLogger.database(error, 'schedule_reminder_after_update', {
+              userId,
+            });
           }
         });
       }
@@ -228,10 +248,9 @@ class ReminderController {
           updatedFields: Object.keys(fieldsToUpdate),
         },
       });
-
     } catch (error) {
       errorLogger.api(error, req);
-      
+
       res.status(500).json({
         success: false,
         error: 'UPDATE_REMINDER_SETTINGS_ERROR',
@@ -254,13 +273,7 @@ class ReminderController {
       }
 
       const userId = req.user.id;
-      const {
-        page = 1,
-        limit = 20,
-        status,
-        startDate,
-        endDate
-      } = req.query;
+      const { page = 1, limit = 20, status, startDate, endDate } = req.query;
 
       const offset = (parseInt(page) - 1) * parseInt(limit);
 
@@ -323,9 +336,13 @@ class ReminderController {
         status: record.status,
         responseType: record.response_type,
         respondedAt: record.responded_at,
-        responseTime: record.responded_at && record.sent_at 
-          ? moment(record.responded_at).diff(moment(record.sent_at), 'minutes')
-          : null,
+        responseTime:
+          record.responded_at && record.sent_at
+            ? moment(record.responded_at).diff(
+                moment(record.sent_at),
+                'minutes'
+              )
+            : null,
         context: record.context ? JSON.parse(record.context) : null,
         createdAt: record.created_at,
         updatedAt: record.updated_at,
@@ -350,10 +367,9 @@ class ReminderController {
           },
         },
       });
-
     } catch (error) {
       errorLogger.api(error, req);
-      
+
       res.status(500).json({
         success: false,
         error: 'GET_REMINDER_HISTORY_ERROR',
@@ -396,8 +412,9 @@ class ReminderController {
       }
 
       // 创建提醒记录
-      const reminderMessage = message || await this.generateReminderMessage(userId);
-      
+      const reminderMessage =
+        message || (await this.generateReminderMessage(userId));
+
       const logQuery = `
         INSERT INTO reminder_logs (
           user_id, scheduled_at, message, notification_type, status
@@ -407,27 +424,33 @@ class ReminderController {
       const { rows: logResult } = await db.query(logQuery, [
         userId,
         reminderMessage,
-        notificationType
+        notificationType,
       ]);
 
       const reminderId = logResult.insertId;
 
       try {
         // 发送推送通知
-        const sendPromises = devices.map(device => 
-          PushNotificationService.sendNotification(device.push_token, {
-            title: '💧 饮水提醒',
-            body: reminderMessage,
-            data: {
-              type: 'hydration_reminder',
-              reminderId: reminderId.toString(),
-              userId: userId.toString(),
+        const sendPromises = devices.map(device =>
+          PushNotificationService.sendNotification(
+            device.push_token,
+            {
+              title: '💧 饮水提醒',
+              body: reminderMessage,
+              data: {
+                type: 'hydration_reminder',
+                reminderId: reminderId.toString(),
+                userId: userId.toString(),
+              },
             },
-          }, device.platform)
+            device.platform
+          )
         );
 
         const sendResults = await Promise.allSettled(sendPromises);
-        const successCount = sendResults.filter(result => result.status === 'fulfilled').length;
+        const successCount = sendResults.filter(
+          result => result.status === 'fulfilled'
+        ).length;
 
         // 更新提醒状态
         const newStatus = successCount > 0 ? 'sent' : 'failed';
@@ -453,20 +476,18 @@ class ReminderController {
             successCount,
           },
         });
-
       } catch (sendError) {
         // 更新提醒状态为失败
         await db.query(
-          'UPDATE reminder_logs SET status = \'failed\' WHERE id = ?',
+          "UPDATE reminder_logs SET status = 'failed' WHERE id = ?",
           [reminderId]
         );
 
         throw sendError;
       }
-
     } catch (error) {
       errorLogger.api(error, req);
-      
+
       res.status(500).json({
         success: false,
         error: 'SEND_REMINDER_ERROR',
@@ -499,7 +520,10 @@ class ReminderController {
         WHERE id = ? AND user_id = ?
       `;
 
-      const { rows: reminders } = await db.query(reminderQuery, [reminderId, userId]);
+      const { rows: reminders } = await db.query(reminderQuery, [
+        reminderId,
+        userId,
+      ]);
 
       if (reminders.length === 0) {
         return res.status(404).json({
@@ -534,7 +558,10 @@ class ReminderController {
             responseTime: moment().diff(moment(reminder.sent_at), 'minutes'),
           });
         } catch (recordError) {
-          errorLogger.database(recordError, 'add_reminder_response_record', { userId, reminderId });
+          errorLogger.database(recordError, 'add_reminder_response_record', {
+            userId,
+            reminderId,
+          });
         }
       }
 
@@ -560,10 +587,9 @@ class ReminderController {
           amount: amount || null,
         },
       });
-
     } catch (error) {
       errorLogger.api(error, req);
-      
+
       res.status(500).json({
         success: false,
         error: 'RESPOND_TO_REMINDER_ERROR',
@@ -579,7 +605,7 @@ class ReminderController {
       const { period = 'week' } = req.query;
 
       let dateCondition = '';
-      
+
       switch (period) {
         case 'today':
           dateCondition = 'AND DATE(scheduled_at) = CURDATE()';
@@ -588,7 +614,8 @@ class ReminderController {
           dateCondition = 'AND scheduled_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)';
           break;
         case 'month':
-          dateCondition = 'AND scheduled_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)';
+          dateCondition =
+            'AND scheduled_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)';
           break;
         default:
           dateCondition = 'AND scheduled_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)';
@@ -645,15 +672,21 @@ class ReminderController {
 
       // 计算各种比率
       const totalReminders = parseInt(statistics.total_reminders) || 0;
-      const deliveryRate = totalReminders > 0 
-        ? ((statistics.delivered_reminders / totalReminders) * 100).toFixed(1)
-        : 0;
-      const responseRate = totalReminders > 0
-        ? ((statistics.responded_reminders / totalReminders) * 100).toFixed(1)
-        : 0;
-      const effectivenessRate = totalReminders > 0
-        ? ((statistics.drink_logged_reminders / totalReminders) * 100).toFixed(1)
-        : 0;
+      const deliveryRate =
+        totalReminders > 0
+          ? ((statistics.delivered_reminders / totalReminders) * 100).toFixed(1)
+          : 0;
+      const responseRate =
+        totalReminders > 0
+          ? ((statistics.responded_reminders / totalReminders) * 100).toFixed(1)
+          : 0;
+      const effectivenessRate =
+        totalReminders > 0
+          ? (
+              (statistics.drink_logged_reminders / totalReminders) *
+              100
+            ).toFixed(1)
+          : 0;
 
       res.json({
         success: true,
@@ -667,7 +700,8 @@ class ReminderController {
             deliveryRate: parseFloat(deliveryRate),
             responseRate: parseFloat(responseRate),
             effectivenessRate: parseFloat(effectivenessRate),
-            averageResponseTime: parseFloat(statistics.avg_response_time_minutes) || 0,
+            averageResponseTime:
+              parseFloat(statistics.avg_response_time_minutes) || 0,
           },
           responseTypes: {
             drinkLogged: parseInt(statistics.drink_logged_reminders) || 0,
@@ -679,9 +713,10 @@ class ReminderController {
             reminders: parseInt(day.daily_reminders),
             responses: parseInt(day.daily_responses),
             drinks: parseInt(day.daily_drinks),
-            responseRate: day.daily_reminders > 0 
-              ? ((day.daily_responses / day.daily_reminders) * 100).toFixed(1)
-              : 0,
+            responseRate:
+              day.daily_reminders > 0
+                ? ((day.daily_responses / day.daily_reminders) * 100).toFixed(1)
+                : 0,
           })),
           hourlyBreakdown: hourlyStats.map(hour => ({
             hour: parseInt(hour.hour),
@@ -691,10 +726,9 @@ class ReminderController {
           })),
         },
       });
-
     } catch (error) {
       errorLogger.api(error, req);
-      
+
       res.status(500).json({
         success: false,
         error: 'GET_REMINDER_STATISTICS_ERROR',
@@ -721,7 +755,7 @@ class ReminderController {
         consider_previous_intake: true,
         do_not_disturb_enabled: false,
         notification_type: 'push',
-        notification_sound: 'default'
+        notification_sound: 'default',
       };
 
       const createQuery = `
@@ -750,7 +784,7 @@ class ReminderController {
         defaultSettings.consider_previous_intake,
         defaultSettings.do_not_disturb_enabled,
         defaultSettings.notification_type,
-        defaultSettings.notification_sound
+        defaultSettings.notification_sound,
       ]);
 
       return {
@@ -785,9 +819,10 @@ class ReminderController {
           averageResponseTime: 0,
         },
       };
-
     } catch (error) {
-      errorLogger.database(error, 'create_default_reminder_settings', { userId });
+      errorLogger.database(error, 'create_default_reminder_settings', {
+        userId,
+      });
       throw error;
     }
   }
@@ -796,13 +831,16 @@ class ReminderController {
   static async generateReminderMessage(userId) {
     try {
       // 获取自定义消息
-      const settingsQuery = 'SELECT custom_messages FROM reminder_settings WHERE user_id = ?';
+      const settingsQuery =
+        'SELECT custom_messages FROM reminder_settings WHERE user_id = ?';
       const { rows: settings } = await db.query(settingsQuery, [userId]);
 
       if (settings.length > 0 && settings[0].custom_messages) {
         const customMessages = JSON.parse(settings[0].custom_messages);
         if (customMessages.length > 0) {
-          return customMessages[Math.floor(Math.random() * customMessages.length)];
+          return customMessages[
+            Math.floor(Math.random() * customMessages.length)
+          ];
         }
       }
 
@@ -818,8 +856,9 @@ class ReminderController {
         '清澈的水，清爽的你 🌟',
       ];
 
-      return defaultMessages[Math.floor(Math.random() * defaultMessages.length)];
-
+      return defaultMessages[
+        Math.floor(Math.random() * defaultMessages.length)
+      ];
     } catch (error) {
       errorLogger.database(error, 'generate_reminder_message', { userId });
       return '该喝水啦！💧';
@@ -832,7 +871,7 @@ class ReminderController {
       // 这里实现智能提醒调度逻辑
       // 可以基于用户习惯、当前摄入量、时间等因素
       // 简化实现，实际应用中会更复杂
-      
+
       const settingsQuery = `
         SELECT strategy_type, fixed_interval_minutes, start_time, end_time, is_enabled
         FROM reminder_settings
@@ -871,7 +910,6 @@ class ReminderController {
 
       // 这里应该将提醒加入到调度队列中
       // 实际实现会使用 node-cron 或类似的调度器
-
     } catch (error) {
       errorLogger.database(error, 'schedule_next_reminder', { userId });
     }
@@ -892,11 +930,13 @@ class ReminderController {
       await db.query(logQuery, [
         userId,
         reminderTime.format('YYYY-MM-DD HH:mm:ss'),
-        message + ' (贪睡提醒)'
+        message + ' (贪睡提醒)',
       ]);
-
     } catch (error) {
-      errorLogger.database(error, 'schedule_snooze_reminder', { userId, minutes });
+      errorLogger.database(error, 'schedule_snooze_reminder', {
+        userId,
+        minutes,
+      });
     }
   }
 }
@@ -907,10 +947,7 @@ const updateReminderSettingsValidation = [
     .optional()
     .isIn(['fixed_interval', 'smart_adaptive', 'activity_based', 'custom'])
     .withMessage('提醒策略类型无效'),
-  body('isEnabled')
-    .optional()
-    .isBoolean()
-    .withMessage('启用状态必须是布尔值'),
+  body('isEnabled').optional().isBoolean().withMessage('启用状态必须是布尔值'),
   body('fixedIntervalMinutes')
     .optional()
     .isInt({ min: 15, max: 240 })
@@ -934,26 +971,25 @@ const updateReminderSettingsValidation = [
 ];
 
 const reminderHistoryValidation = [
-  query('page')
-    .optional()
-    .isInt({ min: 1 })
-    .withMessage('页码必须是正整数'),
+  query('page').optional().isInt({ min: 1 }).withMessage('页码必须是正整数'),
   query('limit')
     .optional()
     .isInt({ min: 1, max: 100 })
     .withMessage('每页数量应在1-100之间'),
   query('status')
     .optional()
-    .isIn(['scheduled', 'sent', 'delivered', 'opened', 'responded', 'ignored', 'failed'])
+    .isIn([
+      'scheduled',
+      'sent',
+      'delivered',
+      'opened',
+      'responded',
+      'ignored',
+      'failed',
+    ])
     .withMessage('状态参数无效'),
-  query('startDate')
-    .optional()
-    .isISO8601()
-    .withMessage('开始日期格式无效'),
-  query('endDate')
-    .optional()
-    .isISO8601()
-    .withMessage('结束日期格式无效'),
+  query('startDate').optional().isISO8601().withMessage('开始日期格式无效'),
+  query('endDate').optional().isISO8601().withMessage('结束日期格式无效'),
 ];
 
 const sendInstantReminderValidation = [

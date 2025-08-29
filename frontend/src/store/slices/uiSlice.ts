@@ -40,9 +40,9 @@ const uiSlice = createSlice({
         id: generateToastId(),
         duration: action.payload.duration || 3000,
       };
-      
+
       state.toasts.push(toast);
-      
+
       // Limit the number of toasts to prevent memory issues
       if (state.toasts.length > 5) {
         state.toasts = state.toasts.slice(-5);
@@ -51,7 +51,7 @@ const uiSlice = createSlice({
     hideToast: (state, action: PayloadAction<string>) => {
       state.toasts = state.toasts.filter(toast => toast.id !== action.payload);
     },
-    clearAllToasts: (state) => {
+    clearAllToasts: state => {
       state.toasts = [];
     },
     showSuccessToast: (state, action: PayloadAction<string>) => {
@@ -96,7 +96,7 @@ const uiSlice = createSlice({
     closeModal: (state, action: PayloadAction<keyof UIState['modals']>) => {
       state.modals[action.payload] = false;
     },
-    closeAllModals: (state) => {
+    closeAllModals: state => {
       Object.keys(state.modals).forEach(key => {
         state.modals[key as keyof UIState['modals']] = false;
       });
@@ -111,7 +111,7 @@ const uiSlice = createSlice({
     setBulkUI: (state, action: PayloadAction<Partial<UIState>>) => {
       Object.assign(state, action.payload);
     },
-    resetUI: (state) => {
+    resetUI: state => {
       state.isLoading = false;
       state.loadingText = undefined;
       state.toasts = [];
@@ -127,28 +127,34 @@ const uiSlice = createSlice({
       // The reducer just acknowledges the action
     },
     // Modal with data actions
-    openModalWithData: (state, action: PayloadAction<{
-      modal: keyof UIState['modals'];
-      data?: any;
-    }>) => {
+    openModalWithData: (
+      state,
+      action: PayloadAction<{
+        modal: keyof UIState['modals'];
+        data?: any;
+      }>
+    ) => {
       const { modal } = action.payload;
       state.modals[modal] = true;
       // If you need to store modal data, you can extend the modals object
     },
     // Loading states for specific operations
-    setLoadingState: (state, action: PayloadAction<{
-      operation: string;
-      loading: boolean;
-      text?: string;
-    }>) => {
+    setLoadingState: (
+      state,
+      action: PayloadAction<{
+        operation: string;
+        loading: boolean;
+        text?: string;
+      }>
+    ) => {
       const { operation, loading, text } = action.payload;
-      
+
       // You can track multiple loading states if needed
       if (operation === 'global') {
         state.isLoading = loading;
         state.loadingText = text;
       }
-      
+
       // For specific operations, you could extend the state to track them
       // For now, we'll use the global loading state
       if (loading) {
@@ -166,22 +172,25 @@ const uiSlice = createSlice({
         id: generateToastId(),
         duration: toast.duration || 3000,
       }));
-      
+
       state.toasts.push(...newToasts);
-      
+
       // Limit total toasts
       if (state.toasts.length > 5) {
         state.toasts = state.toasts.slice(-5);
       }
     },
     // Update toast
-    updateToast: (state, action: PayloadAction<{
-      id: string;
-      updates: Partial<Omit<Toast, 'id'>>;
-    }>) => {
+    updateToast: (
+      state,
+      action: PayloadAction<{
+        id: string;
+        updates: Partial<Omit<Toast, 'id'>>;
+      }>
+    ) => {
       const { id, updates } = action.payload;
       const toastIndex = state.toasts.findIndex(toast => toast.id === id);
-      
+
       if (toastIndex !== -1) {
         state.toasts[toastIndex] = { ...state.toasts[toastIndex], ...updates };
       }
@@ -189,12 +198,12 @@ const uiSlice = createSlice({
     // Conditional toast (only show if not already showing same message)
     showUniqueToast: (state, action: PayloadAction<Omit<Toast, 'id'>>) => {
       const { message, type } = action.payload;
-      
+
       // Check if a similar toast is already showing
-      const existingToast = state.toasts.find(toast => 
-        toast.message === message && toast.type === type
+      const existingToast = state.toasts.find(
+        toast => toast.message === message && toast.type === type
       );
-      
+
       if (!existingToast) {
         const toast: Toast = {
           ...action.payload,

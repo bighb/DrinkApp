@@ -13,7 +13,11 @@ class PushNotificationService {
   // 初始化Firebase Admin SDK
   initialize() {
     try {
-      if (!config.firebase.projectId || !config.firebase.clientEmail || !config.firebase.privateKey) {
+      if (
+        !config.firebase.projectId ||
+        !config.firebase.clientEmail ||
+        !config.firebase.privateKey
+      ) {
         logger.warn('Firebase配置不完整，推送通知服务将不可用');
         return;
       }
@@ -76,7 +80,6 @@ class PushNotificationService {
         messageId: response,
         token: token,
       };
-
     } catch (error) {
       errorLogger.external('firebase_messaging', error, {
         token: token?.substring(0, 20) + '...',
@@ -84,8 +87,10 @@ class PushNotificationService {
       });
 
       // 处理特定的Firebase错误
-      if (error.code === 'messaging/invalid-registration-token' ||
-          error.code === 'messaging/registration-token-not-registered') {
+      if (
+        error.code === 'messaging/invalid-registration-token' ||
+        error.code === 'messaging/registration-token-not-registered'
+      ) {
         return {
           success: false,
           error: 'INVALID_TOKEN',
@@ -116,13 +121,13 @@ class PushNotificationService {
       // Firebase限制单次最多500个令牌
       const batchSize = 500;
       const batches = [];
-      
+
       for (let i = 0; i < tokens.length; i += batchSize) {
         batches.push(tokens.slice(i, i + batchSize));
       }
 
       const results = [];
-      
+
       for (const batch of batches) {
         const message = {
           tokens: batch,
@@ -142,16 +147,19 @@ class PushNotificationService {
       }
 
       // 汇总结果
-      const summary = results.reduce((acc, result) => {
-        acc.successCount += result.successCount;
-        acc.failureCount += result.failureCount;
-        acc.responses.push(...result.responses);
-        return acc;
-      }, {
-        successCount: 0,
-        failureCount: 0,
-        responses: [],
-      });
+      const summary = results.reduce(
+        (acc, result) => {
+          acc.successCount += result.successCount;
+          acc.failureCount += result.failureCount;
+          acc.responses.push(...result.responses);
+          return acc;
+        },
+        {
+          successCount: 0,
+          failureCount: 0,
+          responses: [],
+        }
+      );
 
       logger.info('批量推送通知发送完成:', {
         totalTokens: tokens.length,
@@ -165,8 +173,10 @@ class PushNotificationService {
       summary.responses.forEach((response, index) => {
         if (response.error) {
           const errorCode = response.error.code;
-          if (errorCode === 'messaging/invalid-registration-token' ||
-              errorCode === 'messaging/registration-token-not-registered') {
+          if (
+            errorCode === 'messaging/invalid-registration-token' ||
+            errorCode === 'messaging/registration-token-not-registered'
+          ) {
             invalidTokens.push(tokens[index]);
           }
         }
@@ -179,7 +189,6 @@ class PushNotificationService {
         invalidTokens,
         responses: summary.responses,
       };
-
     } catch (error) {
       errorLogger.external('firebase_messaging', error, {
         tokenCount: tokens?.length,
@@ -227,7 +236,6 @@ class PushNotificationService {
         messageId: response,
         topic,
       };
-
     } catch (error) {
       errorLogger.external('firebase_messaging', error, {
         topic,
@@ -263,7 +271,6 @@ class PushNotificationService {
         failureCount: response.failureCount,
         errors: response.errors,
       };
-
     } catch (error) {
       errorLogger.external('firebase_messaging', error, {
         topic,
@@ -299,7 +306,6 @@ class PushNotificationService {
         failureCount: response.failureCount,
         errors: response.errors,
       };
-
     } catch (error) {
       errorLogger.external('firebase_messaging', error, {
         topic,
@@ -332,7 +338,11 @@ class PushNotificationService {
   }
 
   // 发送目标达成通知
-  async sendGoalAchievementNotification(token, achievementData, platform = 'android') {
+  async sendGoalAchievementNotification(
+    token,
+    achievementData,
+    platform = 'android'
+  ) {
     const payload = {
       title: '🎯 目标达成！',
       body: `恭喜！您已连续${achievementData.streak}天达成饮水目标`,
@@ -460,10 +470,11 @@ class PushNotificationService {
       await this.messaging.send(message);
 
       return { valid: true };
-
     } catch (error) {
-      if (error.code === 'messaging/invalid-registration-token' ||
-          error.code === 'messaging/registration-token-not-registered') {
+      if (
+        error.code === 'messaging/invalid-registration-token' ||
+        error.code === 'messaging/registration-token-not-registered'
+      ) {
         return { valid: false, error: '令牌无效或未注册' };
       }
 

@@ -29,7 +29,7 @@ class AuthController {
         dateOfBirth,
         height,
         weight,
-        activityLevel
+        activityLevel,
       } = req.body;
 
       // 检查邮箱和用户名是否已存在
@@ -38,13 +38,17 @@ class AuthController {
         FROM users 
         WHERE (email = ? OR username = ?) AND deleted_at IS NULL
       `;
-      
-      const { rows: existingUsers } = await db.query(existingUserQuery, [email, username]);
+
+      const { rows: existingUsers } = await db.query(existingUserQuery, [
+        email,
+        username,
+      ]);
 
       if (existingUsers.length > 0) {
         const existingUser = existingUsers[0];
-        const conflictField = existingUser.email === email ? 'email' : 'username';
-        
+        const conflictField =
+          existingUser.email === email ? 'email' : 'username';
+
         return res.status(409).json({
           success: false,
           error: 'USER_ALREADY_EXISTS',
@@ -61,11 +65,11 @@ class AuthController {
         weight,
         height,
         activityLevel,
-        gender
+        gender,
       });
 
       // 开始事务
-      const result = await db.transaction(async (connection) => {
+      const result = await db.transaction(async connection => {
         // 插入用户记录
         const insertUserQuery = `
           INSERT INTO users (
@@ -84,7 +88,7 @@ class AuthController {
           height || null,
           weight || null,
           activityLevel || 'moderately_active',
-          defaultGoal
+          defaultGoal,
         ]);
 
         const userId = userResult.insertId;
@@ -109,13 +113,23 @@ class AuthController {
       });
 
       // 生成邮箱验证令牌
-      const verificationToken = AuthService.generateEmailVerificationToken(result, email);
+      const verificationToken = AuthService.generateEmailVerificationToken(
+        result,
+        email
+      );
 
       // 发送验证邮件
       try {
-        await EmailService.sendVerificationEmail(email, fullName || username, verificationToken);
+        await EmailService.sendVerificationEmail(
+          email,
+          fullName || username,
+          verificationToken
+        );
       } catch (emailError) {
-        errorLogger.external('email_service', emailError, { email, userId: result });
+        errorLogger.external('email_service', emailError, {
+          email,
+          userId: result,
+        });
         // 邮件发送失败不影响注册流程
       }
 
@@ -137,10 +151,9 @@ class AuthController {
           verificationSent: true,
         },
       });
-
     } catch (error) {
       errorLogger.api(error, req);
-      
+
       res.status(500).json({
         success: false,
         error: 'REGISTRATION_ERROR',
@@ -178,9 +191,9 @@ class AuthController {
 
       if (users.length === 0) {
         // 记录登录失败日志
-        businessLogger.securityEvent('login_failed', null, req.ip, { 
-          login, 
-          reason: 'user_not_found' 
+        businessLogger.securityEvent('login_failed', null, req.ip, {
+          login,
+          reason: 'user_not_found',
         });
 
         return res.status(401).json({
@@ -194,8 +207,8 @@ class AuthController {
 
       // 检查账户状态
       if (!user.is_active) {
-        businessLogger.securityEvent('login_failed', user.id, req.ip, { 
-          reason: 'account_inactive' 
+        businessLogger.securityEvent('login_failed', user.id, req.ip, {
+          reason: 'account_inactive',
         });
 
         return res.status(403).json({
@@ -206,11 +219,14 @@ class AuthController {
       }
 
       // 验证密码
-      const isPasswordValid = await AuthService.verifyPassword(password, user.password_hash);
-      
+      const isPasswordValid = await AuthService.verifyPassword(
+        password,
+        user.password_hash
+      );
+
       if (!isPasswordValid) {
-        businessLogger.securityEvent('login_failed', user.id, req.ip, { 
-          reason: 'invalid_password' 
+        businessLogger.securityEvent('login_failed', user.id, req.ip, {
+          reason: 'invalid_password',
         });
 
         return res.status(401).json({
@@ -221,7 +237,11 @@ class AuthController {
       }
 
       // 创建会话
-      const sessionData = await AuthService.createSession(user.id, deviceInfo, req);
+      const sessionData = await AuthService.createSession(
+        user.id,
+        deviceInfo,
+        req
+      );
 
       // 获取用户统计信息
       const statsQuery = `
@@ -280,10 +300,9 @@ class AuthController {
           },
         },
       });
-
     } catch (error) {
       errorLogger.api(error, req);
-      
+
       res.status(500).json({
         success: false,
         error: 'LOGIN_ERROR',
@@ -308,12 +327,14 @@ class AuthController {
           expiresAt: tokenData.expiresAt,
         },
       });
-
     } catch (error) {
       errorLogger.api(error, req);
 
-      const statusCode = error.message.includes('过期') || error.message.includes('失效') ? 401 : 500;
-      
+      const statusCode =
+        error.message.includes('过期') || error.message.includes('失效')
+          ? 401
+          : 500;
+
       res.status(statusCode).json({
         success: false,
         error: 'TOKEN_REFRESH_ERROR',
@@ -338,10 +359,9 @@ class AuthController {
         success: true,
         message: '登出成功',
       });
-
     } catch (error) {
       errorLogger.api(error, req);
-      
+
       res.status(500).json({
         success: false,
         error: 'LOGOUT_ERROR',
@@ -359,10 +379,9 @@ class AuthController {
         success: true,
         message: '已从所有设备登出',
       });
-
     } catch (error) {
       errorLogger.api(error, req);
-      
+
       res.status(500).json({
         success: false,
         error: 'LOGOUT_ALL_ERROR',
@@ -383,10 +402,9 @@ class AuthController {
           currentSessionId: req.session.session_token,
         },
       });
-
     } catch (error) {
       errorLogger.api(error, req);
-      
+
       res.status(500).json({
         success: false,
         error: 'GET_SESSIONS_ERROR',
@@ -399,10 +417,10 @@ class AuthController {
   static async revokeSession(req, res) {
     try {
       const { sessionToken } = req.params;
-      
+
       // 检查会话是否属于当前用户
       const session = await AuthService.validateSession(sessionToken);
-      
+
       if (!session || session.user_id !== req.user.id) {
         return res.status(404).json({
           success: false,
@@ -422,10 +440,9 @@ class AuthController {
         success: true,
         message: '会话已撤销',
       });
-
     } catch (error) {
       errorLogger.api(error, req);
-      
+
       res.status(500).json({
         success: false,
         error: 'REVOKE_SESSION_ERROR',
@@ -446,13 +463,13 @@ class AuthController {
       }
 
       const verificationToken = AuthService.generateEmailVerificationToken(
-        req.user.id, 
+        req.user.id,
         req.user.email
       );
 
       await EmailService.sendVerificationEmail(
-        req.user.email, 
-        req.user.full_name || req.user.username, 
+        req.user.email,
+        req.user.full_name || req.user.username,
         verificationToken
       );
 
@@ -462,10 +479,9 @@ class AuthController {
         success: true,
         message: '验证邮件已发送，请查收邮箱',
       });
-
     } catch (error) {
       errorLogger.api(error, req);
-      
+
       res.status(500).json({
         success: false,
         error: 'SEND_VERIFICATION_ERROR',
@@ -482,8 +498,12 @@ class AuthController {
       const decoded = AuthService.verifyEmailVerificationToken(token);
 
       // 查找用户
-      const userQuery = 'SELECT id, email, email_verified FROM users WHERE id = ? AND email = ?';
-      const { rows: users } = await db.query(userQuery, [decoded.userId, decoded.email]);
+      const userQuery =
+        'SELECT id, email, email_verified FROM users WHERE id = ? AND email = ?';
+      const { rows: users } = await db.query(userQuery, [
+        decoded.userId,
+        decoded.email,
+      ]);
 
       if (users.length === 0) {
         return res.status(404).json({
@@ -517,12 +537,14 @@ class AuthController {
         success: true,
         message: '邮箱验证成功',
       });
-
     } catch (error) {
       errorLogger.api(error, req);
 
-      const statusCode = error.message.includes('过期') || error.message.includes('无效') ? 400 : 500;
-      
+      const statusCode =
+        error.message.includes('过期') || error.message.includes('无效')
+          ? 400
+          : 500;
+
       res.status(statusCode).json({
         success: false,
         error: 'EMAIL_VERIFICATION_ERROR',
@@ -547,7 +569,8 @@ class AuthController {
       const { email } = req.body;
 
       // 查找用户
-      const userQuery = 'SELECT id, email, full_name, username FROM users WHERE email = ? AND deleted_at IS NULL';
+      const userQuery =
+        'SELECT id, email, full_name, username FROM users WHERE email = ? AND deleted_at IS NULL';
       const { rows: users } = await db.query(userQuery, [email]);
 
       // 为了安全考虑，不管用户是否存在都返回成功消息
@@ -560,7 +583,10 @@ class AuthController {
 
       const user = users[0];
 
-      const resetToken = AuthService.generatePasswordResetToken(user.id, user.email);
+      const resetToken = AuthService.generatePasswordResetToken(
+        user.id,
+        user.email
+      );
 
       await EmailService.sendPasswordResetEmail(
         user.email,
@@ -576,10 +602,9 @@ class AuthController {
         success: true,
         message: '如果该邮箱已注册，我们已发送密码重置链接',
       });
-
     } catch (error) {
       errorLogger.api(error, req);
-      
+
       res.status(500).json({
         success: false,
         error: 'SEND_RESET_EMAIL_ERROR',
@@ -606,8 +631,12 @@ class AuthController {
       const decoded = AuthService.verifyPasswordResetToken(token);
 
       // 查找用户
-      const userQuery = 'SELECT id, email FROM users WHERE id = ? AND email = ?';
-      const { rows: users } = await db.query(userQuery, [decoded.userId, decoded.email]);
+      const userQuery =
+        'SELECT id, email FROM users WHERE id = ? AND email = ?';
+      const { rows: users } = await db.query(userQuery, [
+        decoded.userId,
+        decoded.email,
+      ]);
 
       if (users.length === 0) {
         return res.status(404).json({
@@ -623,7 +652,7 @@ class AuthController {
       const passwordHash = await AuthService.hashPassword(newPassword);
 
       // 更新密码并清除所有会话
-      await db.transaction(async (connection) => {
+      await db.transaction(async connection => {
         // 更新密码
         await connection.execute(
           'UPDATE users SET password_hash = ?, updated_at = NOW() WHERE id = ?',
@@ -645,12 +674,14 @@ class AuthController {
         success: true,
         message: '密码重置成功，请使用新密码登录',
       });
-
     } catch (error) {
       errorLogger.api(error, req);
 
-      const statusCode = error.message.includes('过期') || error.message.includes('无效') ? 400 : 500;
-      
+      const statusCode =
+        error.message.includes('过期') || error.message.includes('无效')
+          ? 400
+          : 500;
+
       res.status(statusCode).json({
         success: false,
         error: 'PASSWORD_RESET_ERROR',
@@ -687,10 +718,7 @@ class AuthController {
 
 // 输入验证规则
 const registerValidation = [
-  body('email')
-    .isEmail()
-    .normalizeEmail()
-    .withMessage('请输入有效的邮箱地址'),
+  body('email').isEmail().normalizeEmail().withMessage('请输入有效的邮箱地址'),
   body('username')
     .isLength({ min: 3, max: 20 })
     .matches(/^[a-zA-Z0-9_]+$/)
@@ -714,25 +742,16 @@ const registerValidation = [
 ];
 
 const loginValidation = [
-  body('login')
-    .notEmpty()
-    .withMessage('请输入邮箱或用户名'),
-  body('password')
-    .notEmpty()
-    .withMessage('请输入密码'),
+  body('login').notEmpty().withMessage('请输入邮箱或用户名'),
+  body('password').notEmpty().withMessage('请输入密码'),
 ];
 
 const emailValidation = [
-  body('email')
-    .isEmail()
-    .normalizeEmail()
-    .withMessage('请输入有效的邮箱地址'),
+  body('email').isEmail().normalizeEmail().withMessage('请输入有效的邮箱地址'),
 ];
 
 const resetPasswordValidation = [
-  body('token')
-    .notEmpty()
-    .withMessage('缺少重置令牌'),
+  body('token').notEmpty().withMessage('缺少重置令牌'),
   body('newPassword')
     .isLength({ min: 8 })
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)

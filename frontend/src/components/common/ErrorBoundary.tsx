@@ -30,7 +30,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('ErrorBoundary caught an error:', error, errorInfo);
-    
+
     this.setState({
       error,
       errorInfo,
@@ -58,8 +58,8 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <SafeAreaView style={styles.container}>
           <View style={styles.content}>
-            <Animatable.View 
-              animation="bounceIn" 
+            <Animatable.View
+              animation="bounceIn"
               duration={1000}
               style={styles.iconContainer}
             >
@@ -67,9 +67,10 @@ export class ErrorBoundary extends Component<Props, State> {
             </Animatable.View>
 
             <Text style={styles.title}>Oops! Something went wrong</Text>
-            
+
             <Text style={styles.message}>
-              We encountered an unexpected error. Don't worry, your data is safe.
+              We encountered an unexpected error. Don't worry, your data is
+              safe.
             </Text>
 
             <View style={styles.buttonContainer}>

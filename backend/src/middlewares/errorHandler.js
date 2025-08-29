@@ -32,7 +32,9 @@ const errorHandler = (err, req, res, next) => {
 
   // Mongoose验证错误
   if (err.name === 'ValidationError') {
-    message = Object.values(err.errors).map(val => val.message).join(', ');
+    message = Object.values(err.errors)
+      .map(val => val.message)
+      .join(', ');
     statusCode = 400;
   }
 
@@ -68,8 +70,8 @@ const errorHandler = (err, req, res, next) => {
     success: false,
     error: {
       message,
-      ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-    }
+      ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+    },
   });
 };
 

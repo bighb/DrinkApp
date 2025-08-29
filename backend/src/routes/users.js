@@ -7,12 +7,12 @@ import {
   updateProfileValidation,
   changePasswordValidation,
   deleteAccountValidation,
-  statisticsValidation
+  statisticsValidation,
 } from '../controllers/userController.js';
 import {
   authenticate,
   requireEmailVerification,
-  checkAccountStatus
+  checkAccountStatus,
 } from '../middlewares/auth.js';
 
 const router = express.Router();
@@ -49,17 +49,17 @@ const storage = multer.diskStorage({
     cb(null, join(process.cwd(), 'uploads/avatars'));
   },
   filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     const extension = extname(file.originalname);
     cb(null, `avatar-${req.user.id}-${uniqueSuffix}${extension}`);
-  }
+  },
 });
 
 const upload = multer({
   storage,
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB
-    files: 1
+    files: 1,
   },
   fileFilter: (req, file, cb) => {
     const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
@@ -68,7 +68,7 @@ const upload = multer({
     } else {
       cb(new Error('只允许上传 JPG, PNG, GIF, WebP 格式的图片'));
     }
-  }
+  },
 });
 
 // 所有用户路由都需要认证
@@ -248,7 +248,12 @@ router.get('/profile', generalLimiter, UserController.getProfile);
  *       401:
  *         description: 未授权
  */
-router.put('/profile', generalLimiter, updateProfileValidation, UserController.updateProfile);
+router.put(
+  '/profile',
+  generalLimiter,
+  updateProfileValidation,
+  UserController.updateProfile
+);
 
 /**
  * @swagger
@@ -283,7 +288,12 @@ router.put('/profile', generalLimiter, updateProfileValidation, UserController.u
  *       401:
  *         description: 未授权
  */
-router.post('/change-password', sensitiveLimiter, changePasswordValidation, UserController.changePassword);
+router.post(
+  '/change-password',
+  sensitiveLimiter,
+  changePasswordValidation,
+  UserController.changePassword
+);
 
 /**
  * @swagger
@@ -326,26 +336,31 @@ router.post('/change-password', sensitiveLimiter, changePasswordValidation, User
  *       401:
  *         description: 未授权
  */
-router.post('/avatar', generalLimiter, (req, res, next) => {
-  upload.single('avatar')(req, res, (err) => {
-    if (err instanceof multer.MulterError) {
-      if (err.code === 'LIMIT_FILE_SIZE') {
+router.post(
+  '/avatar',
+  generalLimiter,
+  (req, res, next) => {
+    upload.single('avatar')(req, res, err => {
+      if (err instanceof multer.MulterError) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({
+            success: false,
+            error: 'FILE_TOO_LARGE',
+            message: '文件大小不能超过5MB',
+          });
+        }
+      } else if (err) {
         return res.status(400).json({
           success: false,
-          error: 'FILE_TOO_LARGE',
-          message: '文件大小不能超过5MB',
+          error: 'FILE_UPLOAD_ERROR',
+          message: err.message,
         });
       }
-    } else if (err) {
-      return res.status(400).json({
-        success: false,
-        error: 'FILE_UPLOAD_ERROR',
-        message: err.message,
-      });
-    }
-    next();
-  });
-}, UserController.uploadAvatar);
+      next();
+    });
+  },
+  UserController.uploadAvatar
+);
 
 /**
  * @swagger
@@ -451,7 +466,12 @@ router.delete('/avatar', generalLimiter, UserController.deleteAvatar);
  *       401:
  *         description: 未授权
  */
-router.get('/statistics', generalLimiter, statisticsValidation, UserController.getStatistics);
+router.get(
+  '/statistics',
+  generalLimiter,
+  statisticsValidation,
+  UserController.getStatistics
+);
 
 /**
  * @swagger
@@ -486,6 +506,11 @@ router.get('/statistics', generalLimiter, statisticsValidation, UserController.g
  *       401:
  *         description: 未授权
  */
-router.post('/delete-account', sensitiveLimiter, deleteAccountValidation, UserController.deleteAccount);
+router.post(
+  '/delete-account',
+  sensitiveLimiter,
+  deleteAccountValidation,
+  UserController.deleteAccount
+);
 
 export default router;

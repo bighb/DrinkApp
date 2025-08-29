@@ -28,7 +28,7 @@ class HydrationController {
         activityContext,
         temperature = 'room',
         source = 'manual',
-        deviceId
+        deviceId,
       } = req.body;
 
       // 检查每日记录数量限制
@@ -52,7 +52,7 @@ class HydrationController {
       }
 
       // 处理记录时间（如果未提供则使用当前时间）
-      const recordTime = recordedAt 
+      const recordTime = recordedAt
         ? moment.tz(recordedAt, req.user.timezone || 'Asia/Shanghai')
         : moment.tz(req.user.timezone || 'Asia/Shanghai');
 
@@ -74,7 +74,7 @@ class HydrationController {
         activityContext || null,
         temperature,
         source,
-        deviceId || null
+        deviceId || null,
       ]);
 
       const recordId = insertResult.insertId;
@@ -82,11 +82,20 @@ class HydrationController {
       // 异步更新用户统计和成就检查
       setImmediate(async () => {
         try {
-          await this.updateUserStatistics(userId, recordTime.format('YYYY-MM-DD'));
-          await this.checkAndUpdateGoalProgress(userId, recordTime.format('YYYY-MM-DD'));
+          await this.updateUserStatistics(
+            userId,
+            recordTime.format('YYYY-MM-DD')
+          );
+          await this.checkAndUpdateGoalProgress(
+            userId,
+            recordTime.format('YYYY-MM-DD')
+          );
           await this.checkAchievements(userId, recordId);
         } catch (error) {
-          errorLogger.database(error, 'post_record_updates', { userId, recordId });
+          errorLogger.database(error, 'post_record_updates', {
+            userId,
+            recordId,
+          });
         }
       });
 
@@ -100,12 +109,16 @@ class HydrationController {
         WHERE user_id = ? AND DATE(recorded_at) = CURDATE() AND deleted_at IS NULL
       `;
 
-      const { rows: todayStats } = await db.query(todayStatsQuery, [userId, userId]);
+      const { rows: todayStats } = await db.query(todayStatsQuery, [
+        userId,
+        userId,
+      ]);
       const stats = todayStats[0] || {};
 
       const todayTotal = parseInt(stats.today_total);
       const dailyGoal = parseInt(stats.daily_goal);
-      const progressPercentage = dailyGoal > 0 ? (todayTotal / dailyGoal * 100).toFixed(1) : 0;
+      const progressPercentage =
+        dailyGoal > 0 ? ((todayTotal / dailyGoal) * 100).toFixed(1) : 0;
 
       // 记录日志
       businessLogger.userAction(userId, 'add_hydration_record', {
@@ -134,10 +147,9 @@ class HydrationController {
           },
         },
       });
-
     } catch (error) {
       errorLogger.api(error, req);
-      
+
       res.status(500).json({
         success: false,
         error: 'ADD_RECORD_ERROR',
@@ -167,7 +179,7 @@ class HydrationController {
         endDate,
         drinkType,
         sortBy = 'recorded_at',
-        sortOrder = 'desc'
+        sortOrder = 'desc',
       } = req.query;
 
       const offset = (parseInt(page) - 1) * parseInt(limit);
@@ -192,9 +204,18 @@ class HydrationController {
       }
 
       // 验证排序字段
-      const allowedSortFields = ['recorded_at', 'amount', 'drink_type', 'created_at'];
-      const validSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'recorded_at';
-      const validSortOrder = ['asc', 'desc'].includes(sortOrder.toLowerCase()) ? sortOrder.toUpperCase() : 'DESC';
+      const allowedSortFields = [
+        'recorded_at',
+        'amount',
+        'drink_type',
+        'created_at',
+      ];
+      const validSortBy = allowedSortFields.includes(sortBy)
+        ? sortBy
+        : 'recorded_at';
+      const validSortOrder = ['asc', 'desc'].includes(sortOrder.toLowerCase())
+        ? sortOrder.toUpperCase()
+        : 'DESC';
 
       // 查询记录总数
       const countQuery = `
@@ -260,10 +281,9 @@ class HydrationController {
           },
         },
       });
-
     } catch (error) {
       errorLogger.api(error, req);
-      
+
       res.status(500).json({
         success: false,
         error: 'GET_RECORDS_ERROR',
@@ -326,10 +346,9 @@ class HydrationController {
           updatedAt: record.updated_at,
         },
       });
-
     } catch (error) {
       errorLogger.api(error, req);
-      
+
       res.status(500).json({
         success: false,
         error: 'GET_RECORD_ERROR',
@@ -362,7 +381,10 @@ class HydrationController {
         WHERE id = ? AND user_id = ? AND deleted_at IS NULL
       `;
 
-      const { rows: existingRecords } = await db.query(existingRecordQuery, [recordId, userId]);
+      const { rows: existingRecords } = await db.query(existingRecordQuery, [
+        recordId,
+        userId,
+      ]);
 
       if (existingRecords.length === 0) {
         return res.status(404).json({
@@ -393,15 +415,18 @@ class HydrationController {
       Object.entries(allowedFields).forEach(([dbField, value]) => {
         if (value !== undefined) {
           fieldsToUpdate[dbField] = value;
-          
+
           // 处理记录时间格式
           if (dbField === 'recorded_at' && value) {
-            const recordTime = moment.tz(value, req.user.timezone || 'Asia/Shanghai');
+            const recordTime = moment.tz(
+              value,
+              req.user.timezone || 'Asia/Shanghai'
+            );
             values.push(recordTime.format('YYYY-MM-DD HH:mm:ss'));
           } else {
             values.push(value);
           }
-          
+
           setClause.push(`${dbField} = ?`);
         }
       });
@@ -425,10 +450,15 @@ class HydrationController {
       await db.query(updateQuery, values);
 
       // 如果更新了数量或时间，重新计算统计
-      if (updateData.amount !== undefined || updateData.recordedAt !== undefined) {
+      if (
+        updateData.amount !== undefined ||
+        updateData.recordedAt !== undefined
+      ) {
         const oldDate = moment(existingRecord.recorded_at).format('YYYY-MM-DD');
-        const newDate = updateData.recordedAt 
-          ? moment.tz(updateData.recordedAt, req.user.timezone || 'Asia/Shanghai').format('YYYY-MM-DD')
+        const newDate = updateData.recordedAt
+          ? moment
+              .tz(updateData.recordedAt, req.user.timezone || 'Asia/Shanghai')
+              .format('YYYY-MM-DD')
           : oldDate;
 
         setImmediate(async () => {
@@ -439,7 +469,10 @@ class HydrationController {
             }
             await this.checkAndUpdateGoalProgress(userId, newDate);
           } catch (error) {
-            errorLogger.database(error, 'post_update_statistics', { userId, recordId });
+            errorLogger.database(error, 'post_update_statistics', {
+              userId,
+              recordId,
+            });
           }
         });
       }
@@ -459,10 +492,9 @@ class HydrationController {
           updatedFields: Object.keys(fieldsToUpdate),
         },
       });
-
     } catch (error) {
       errorLogger.api(error, req);
-      
+
       res.status(500).json({
         success: false,
         error: 'UPDATE_RECORD_ERROR',
@@ -494,7 +526,10 @@ class HydrationController {
         WHERE id = ? AND user_id = ? AND deleted_at IS NULL
       `;
 
-      const { rows: existingRecords } = await db.query(existingRecordQuery, [recordId, userId]);
+      const { rows: existingRecords } = await db.query(existingRecordQuery, [
+        recordId,
+        userId,
+      ]);
 
       if (existingRecords.length === 0) {
         return res.status(404).json({
@@ -513,13 +548,18 @@ class HydrationController {
       );
 
       // 重新计算统计
-      const recordDate = moment(existingRecord.recorded_at).format('YYYY-MM-DD');
+      const recordDate = moment(existingRecord.recorded_at).format(
+        'YYYY-MM-DD'
+      );
       setImmediate(async () => {
         try {
           await this.updateUserStatistics(userId, recordDate);
           await this.checkAndUpdateGoalProgress(userId, recordDate);
         } catch (error) {
-          errorLogger.database(error, 'post_delete_statistics', { userId, recordId });
+          errorLogger.database(error, 'post_delete_statistics', {
+            userId,
+            recordId,
+          });
         }
       });
 
@@ -537,10 +577,9 @@ class HydrationController {
           deletedAmount: existingRecord.amount,
         },
       });
-
     } catch (error) {
       errorLogger.api(error, req);
-      
+
       res.status(500).json({
         success: false,
         error: 'DELETE_RECORD_ERROR',
@@ -582,24 +621,40 @@ class HydrationController {
       }
 
       // 检查每日记录数量限制
-      const dates = [...new Set(records.map(r => 
-        moment.tz(r.recordedAt || new Date(), req.user.timezone || 'Asia/Shanghai').format('YYYY-MM-DD')
-      ))];
+      const dates = [
+        ...new Set(
+          records.map(r =>
+            moment
+              .tz(
+                r.recordedAt || new Date(),
+                req.user.timezone || 'Asia/Shanghai'
+              )
+              .format('YYYY-MM-DD')
+          )
+        ),
+      ];
 
-      const dateChecks = await Promise.all(dates.map(async (date) => {
-        const countQuery = `
+      const dateChecks = await Promise.all(
+        dates.map(async date => {
+          const countQuery = `
           SELECT COUNT(*) as count
           FROM hydration_records
           WHERE user_id = ? AND DATE(recorded_at) = ? AND deleted_at IS NULL
         `;
-        const { rows: result } = await db.query(countQuery, [userId, date]);
-        return { date, count: result[0].count };
-      }));
+          const { rows: result } = await db.query(countQuery, [userId, date]);
+          return { date, count: result[0].count };
+        })
+      );
 
       // 检查是否超出限制
       for (const check of dateChecks) {
         const newRecordsForDate = records.filter(r => {
-          const recordDate = moment.tz(r.recordedAt || new Date(), req.user.timezone || 'Asia/Shanghai').format('YYYY-MM-DD');
+          const recordDate = moment
+            .tz(
+              r.recordedAt || new Date(),
+              req.user.timezone || 'Asia/Shanghai'
+            )
+            .format('YYYY-MM-DD');
           return recordDate === check.date;
         }).length;
 
@@ -617,7 +672,7 @@ class HydrationController {
       }
 
       // 批量插入记录
-      const insertedRecords = await db.transaction(async (connection) => {
+      const insertedRecords = await db.transaction(async connection => {
         const results = [];
 
         for (const record of records) {
@@ -629,10 +684,10 @@ class HydrationController {
             location,
             activityContext,
             temperature = 'room',
-            source = 'batch_import'
+            source = 'batch_import',
           } = record;
 
-          const recordTime = recordedAt 
+          const recordTime = recordedAt
             ? moment.tz(recordedAt, req.user.timezone || 'Asia/Shanghai')
             : moment.tz(req.user.timezone || 'Asia/Shanghai');
 
@@ -652,7 +707,7 @@ class HydrationController {
             location || null,
             activityContext || null,
             temperature,
-            source
+            source,
           ]);
 
           results.push({
@@ -669,10 +724,14 @@ class HydrationController {
       // 异步更新统计
       setImmediate(async () => {
         try {
-          const uniqueDates = [...new Set(insertedRecords.map(r => 
-            moment(r.recordedAt).format('YYYY-MM-DD')
-          ))];
-          
+          const uniqueDates = [
+            ...new Set(
+              insertedRecords.map(r =>
+                moment(r.recordedAt).format('YYYY-MM-DD')
+              )
+            ),
+          ];
+
           for (const date of uniqueDates) {
             await this.updateUserStatistics(userId, date);
             await this.checkAndUpdateGoalProgress(userId, date);
@@ -695,10 +754,9 @@ class HydrationController {
           records: insertedRecords,
         },
       });
-
     } catch (error) {
       errorLogger.api(error, req);
-      
+
       res.status(500).json({
         success: false,
         error: 'ADD_BATCH_RECORDS_ERROR',
@@ -738,7 +796,10 @@ class HydrationController {
         GROUP BY u.id, u.daily_water_goal
       `;
 
-      const { rows: progressData } = await db.query(progressQuery, [today, userId]);
+      const { rows: progressData } = await db.query(progressQuery, [
+        today,
+        userId,
+      ]);
 
       if (progressData.length === 0) {
         return res.status(404).json({
@@ -751,7 +812,8 @@ class HydrationController {
       const progress = progressData[0];
       const todayTotal = parseInt(progress.today_total);
       const dailyGoal = parseInt(progress.daily_water_goal);
-      const progressPercentage = dailyGoal > 0 ? (todayTotal / dailyGoal * 100) : 0;
+      const progressPercentage =
+        dailyGoal > 0 ? (todayTotal / dailyGoal) * 100 : 0;
 
       // 获取今日记录列表
       const recordsQuery = `
@@ -761,7 +823,10 @@ class HydrationController {
         ORDER BY recorded_at DESC
       `;
 
-      const { rows: todayRecords } = await db.query(recordsQuery, [userId, today]);
+      const { rows: todayRecords } = await db.query(recordsQuery, [
+        userId,
+        today,
+      ]);
 
       // 计算下一个建议记录时间（基于用户习惯）
       const nextReminderTime = await this.calculateNextReminderTime(userId);
@@ -789,7 +854,11 @@ class HydrationController {
               water: parseInt(progress.water_amount),
               tea: parseInt(progress.tea_amount),
               coffee: parseInt(progress.coffee_amount),
-              other: todayTotal - parseInt(progress.water_amount) - parseInt(progress.tea_amount) - parseInt(progress.coffee_amount),
+              other:
+                todayTotal -
+                parseInt(progress.water_amount) -
+                parseInt(progress.tea_amount) -
+                parseInt(progress.coffee_amount),
             },
           },
           records: todayRecords.map(record => ({
@@ -801,14 +870,17 @@ class HydrationController {
           })),
           recommendations: {
             nextReminderTime,
-            suggestedAmount: this.calculateSuggestedAmount(todayTotal, dailyGoal, progress.today_records),
+            suggestedAmount: this.calculateSuggestedAmount(
+              todayTotal,
+              dailyGoal,
+              progress.today_records
+            ),
           },
         },
       });
-
     } catch (error) {
       errorLogger.api(error, req);
-      
+
       res.status(500).json({
         success: false,
         error: 'GET_TODAY_PROGRESS_ERROR',
@@ -859,7 +931,10 @@ class HydrationController {
         LIMIT 1
       `;
 
-      const { rows: progressData } = await db.query(progressQuery, [date, userId]);
+      const { rows: progressData } = await db.query(progressQuery, [
+        date,
+        userId,
+      ]);
 
       if (progressData.length > 0) {
         const progress = progressData[0];
@@ -917,7 +992,6 @@ class HydrationController {
       // 智能提醒逻辑（简化版）
       const defaultInterval = 60; // 默认60分钟
       return now.add(defaultInterval, 'minutes').format();
-
     } catch (error) {
       errorLogger.database(error, 'calculate_reminder_time', { userId });
       return null;
@@ -928,14 +1002,14 @@ class HydrationController {
   static calculateSuggestedAmount(currentTotal, dailyGoal, recordCount) {
     const remaining = Math.max(0, dailyGoal - currentTotal);
     const hoursLeft = Math.max(1, 24 - new Date().getHours());
-    
+
     if (remaining === 0) {
       return 200; // 已达目标，建议少量补充
     }
 
     // 基于剩余时间和剩余量计算
     const suggestedPerHour = Math.ceil(remaining / hoursLeft);
-    
+
     // 限制在合理范围内
     return Math.max(100, Math.min(500, suggestedPerHour));
   }
@@ -944,27 +1018,46 @@ class HydrationController {
 // 输入验证规则
 const addRecordValidation = [
   body('amount')
-    .isInt({ min: config.business.minRecordAmount, max: config.business.maxRecordAmount })
-    .withMessage(`饮水量应在${config.business.minRecordAmount}-${config.business.maxRecordAmount}ml之间`),
+    .isInt({
+      min: config.business.minRecordAmount,
+      max: config.business.maxRecordAmount,
+    })
+    .withMessage(
+      `饮水量应在${config.business.minRecordAmount}-${config.business.maxRecordAmount}ml之间`
+    ),
   body('drinkType')
     .optional()
-    .isIn(['water', 'tea', 'coffee', 'juice', 'sports_drink', 'soda', 'alcohol', 'other'])
+    .isIn([
+      'water',
+      'tea',
+      'coffee',
+      'juice',
+      'sports_drink',
+      'soda',
+      'alcohol',
+      'other',
+    ])
     .withMessage('饮品类型无效'),
   body('drinkName')
     .optional()
     .isLength({ max: 100 })
     .withMessage('饮品名称不能超过100个字符'),
-  body('recordedAt')
-    .optional()
-    .isISO8601()
-    .withMessage('记录时间格式无效'),
+  body('recordedAt').optional().isISO8601().withMessage('记录时间格式无效'),
   body('location')
     .optional()
     .isLength({ max: 100 })
     .withMessage('地点标签不能超过100个字符'),
   body('activityContext')
     .optional()
-    .isIn(['work', 'exercise', 'meal', 'wake_up', 'before_sleep', 'break', 'other'])
+    .isIn([
+      'work',
+      'exercise',
+      'meal',
+      'wake_up',
+      'before_sleep',
+      'break',
+      'other',
+    ])
     .withMessage('活动场景无效'),
   body('temperature')
     .optional()
@@ -973,25 +1066,25 @@ const addRecordValidation = [
 ];
 
 const getRecordsValidation = [
-  query('page')
-    .optional()
-    .isInt({ min: 1 })
-    .withMessage('页码必须是正整数'),
+  query('page').optional().isInt({ min: 1 }).withMessage('页码必须是正整数'),
   query('limit')
     .optional()
     .isInt({ min: 1, max: 100 })
     .withMessage('每页数量应在1-100之间'),
-  query('startDate')
-    .optional()
-    .isISO8601()
-    .withMessage('开始日期格式无效'),
-  query('endDate')
-    .optional()
-    .isISO8601()
-    .withMessage('结束日期格式无效'),
+  query('startDate').optional().isISO8601().withMessage('开始日期格式无效'),
+  query('endDate').optional().isISO8601().withMessage('结束日期格式无效'),
   query('drinkType')
     .optional()
-    .isIn(['water', 'tea', 'coffee', 'juice', 'sports_drink', 'soda', 'alcohol', 'other'])
+    .isIn([
+      'water',
+      'tea',
+      'coffee',
+      'juice',
+      'sports_drink',
+      'soda',
+      'alcohol',
+      'other',
+    ])
     .withMessage('饮品类型无效'),
   query('sortBy')
     .optional()
@@ -1004,29 +1097,38 @@ const getRecordsValidation = [
 ];
 
 const recordIdValidation = [
-  param('recordId')
-    .isInt({ min: 1 })
-    .withMessage('记录ID必须是正整数'),
+  param('recordId').isInt({ min: 1 }).withMessage('记录ID必须是正整数'),
 ];
 
 const updateRecordValidation = [
   ...recordIdValidation,
   body('amount')
     .optional()
-    .isInt({ min: config.business.minRecordAmount, max: config.business.maxRecordAmount })
-    .withMessage(`饮水量应在${config.business.minRecordAmount}-${config.business.maxRecordAmount}ml之间`),
+    .isInt({
+      min: config.business.minRecordAmount,
+      max: config.business.maxRecordAmount,
+    })
+    .withMessage(
+      `饮水量应在${config.business.minRecordAmount}-${config.business.maxRecordAmount}ml之间`
+    ),
   body('drinkType')
     .optional()
-    .isIn(['water', 'tea', 'coffee', 'juice', 'sports_drink', 'soda', 'alcohol', 'other'])
+    .isIn([
+      'water',
+      'tea',
+      'coffee',
+      'juice',
+      'sports_drink',
+      'soda',
+      'alcohol',
+      'other',
+    ])
     .withMessage('饮品类型无效'),
   body('drinkName')
     .optional()
     .isLength({ max: 100 })
     .withMessage('饮品名称不能超过100个字符'),
-  body('recordedAt')
-    .optional()
-    .isISO8601()
-    .withMessage('记录时间格式无效'),
+  body('recordedAt').optional().isISO8601().withMessage('记录时间格式无效'),
 ];
 
 const batchRecordsValidation = [
@@ -1034,11 +1136,25 @@ const batchRecordsValidation = [
     .isArray({ min: 1, max: 50 })
     .withMessage('记录列表应包含1-50条记录'),
   body('records.*.amount')
-    .isInt({ min: config.business.minRecordAmount, max: config.business.maxRecordAmount })
-    .withMessage(`饮水量应在${config.business.minRecordAmount}-${config.business.maxRecordAmount}ml之间`),
+    .isInt({
+      min: config.business.minRecordAmount,
+      max: config.business.maxRecordAmount,
+    })
+    .withMessage(
+      `饮水量应在${config.business.minRecordAmount}-${config.business.maxRecordAmount}ml之间`
+    ),
   body('records.*.drinkType')
     .optional()
-    .isIn(['water', 'tea', 'coffee', 'juice', 'sports_drink', 'soda', 'alcohol', 'other'])
+    .isIn([
+      'water',
+      'tea',
+      'coffee',
+      'juice',
+      'sports_drink',
+      'soda',
+      'alcohol',
+      'other',
+    ])
     .withMessage('饮品类型无效'),
 ];
 

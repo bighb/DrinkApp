@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+pnpm-lock.yaml
+package-lock.json
+
+# Build outputs
+dist/
+build/
+.expo/
+.expo-shared/
+
+# Logs
+*.log
+logs/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Coverage reports
+coverage/
+
+# Cache
+.cache/
+.nyc_output/
+
+# Expo
+.expo/
+.expo-shared/
+expo-env.d.ts
+
+# Documentation
+*.md
+
+# Config files that should not be formatted
+babel.config.js
+metro.config.js
+app.json
+.eslintrc.js

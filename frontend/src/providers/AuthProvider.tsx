@@ -15,7 +15,7 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const dispatch = useAppDispatch();
-  const authState = useAppSelector((state) => state.auth);
+  const authState = useAppSelector(state => state.auth);
   const [isInitialized, setIsInitialized] = React.useState(false);
 
   useEffect(() => {
@@ -39,9 +39,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
   );
 };
 

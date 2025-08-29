@@ -37,15 +37,15 @@ export const AuthNavigator: React.FC = () => {
         },
       }}
     >
-      <Stack.Screen 
-        name="Login" 
+      <Stack.Screen
+        name="Login"
         component={LoginScreen}
         options={{
           animationTypeForReplace: 'push',
         }}
       />
-      <Stack.Screen 
-        name="Register" 
+      <Stack.Screen
+        name="Register"
         component={RegisterScreen}
         options={{
           cardStyleInterpolator: ({ current, layouts }) => {
@@ -64,14 +64,8 @@ export const AuthNavigator: React.FC = () => {
           },
         }}
       />
-      <Stack.Screen 
-        name="ForgotPassword" 
-        component={ForgotPasswordScreen}
-      />
-      <Stack.Screen 
-        name="ResetPassword" 
-        component={ResetPasswordScreen}
-      />
+      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+      <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
     </Stack.Navigator>
   );
 };

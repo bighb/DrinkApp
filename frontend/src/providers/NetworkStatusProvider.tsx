@@ -11,13 +11,17 @@ interface NetworkStatusContextType {
   isOnline: boolean;
 }
 
-const NetworkStatusContext = createContext<NetworkStatusContextType | undefined>(undefined);
+const NetworkStatusContext = createContext<
+  NetworkStatusContextType | undefined
+>(undefined);
 
 interface NetworkStatusProviderProps {
   children: React.ReactNode;
 }
 
-export const NetworkStatusProvider: React.FC<NetworkStatusProviderProps> = ({ children }) => {
+export const NetworkStatusProvider: React.FC<NetworkStatusProviderProps> = ({
+  children,
+}) => {
   const [networkState, setNetworkState] = useState<NetworkState>({
     isConnected: true,
     type: 'unknown',
@@ -28,7 +32,7 @@ export const NetworkStatusProvider: React.FC<NetworkStatusProviderProps> = ({ ch
 
   useEffect(() => {
     // Subscribe to network state changes
-    const unsubscribe = NetInfo.addEventListener((state) => {
+    const unsubscribe = NetInfo.addEventListener(state => {
       const newNetworkState: NetworkState = {
         isConnected: state.isConnected ?? false,
         type: state.type,
@@ -48,7 +52,7 @@ export const NetworkStatusProvider: React.FC<NetworkStatusProviderProps> = ({ ch
     });
 
     // Get initial network state
-    NetInfo.fetch().then((state) => {
+    NetInfo.fetch().then(state => {
       setNetworkState({
         isConnected: state.isConnected ?? false,
         type: state.type,
@@ -72,7 +76,7 @@ export const NetworkStatusProvider: React.FC<NetworkStatusProviderProps> = ({ ch
     <NetworkStatusContext.Provider value={value}>
       <View style={styles.container}>
         {children}
-        
+
         {/* Offline Banner */}
         {!isOnline && (
           <View style={styles.offlineBanner}>
@@ -112,7 +116,9 @@ export const NetworkStatusProvider: React.FC<NetworkStatusProviderProps> = ({ ch
 export const useNetworkStatus = (): NetworkStatusContextType => {
   const context = useContext(NetworkStatusContext);
   if (!context) {
-    throw new Error('useNetworkStatus must be used within a NetworkStatusProvider');
+    throw new Error(
+      'useNetworkStatus must be used within a NetworkStatusProvider'
+    );
   }
   return context;
 };

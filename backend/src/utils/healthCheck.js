@@ -8,7 +8,7 @@ class HealthCheck {
   // 基础健康检查
   static async basic(req, res) {
     const startTime = Date.now();
-    
+
     try {
       const health = {
         status: 'healthy',
@@ -91,7 +91,6 @@ class HealthCheck {
 
       const statusCode = overallStatus === 'healthy' ? 200 : 503;
       res.status(statusCode).json(health);
-
     } catch (error) {
       logger.error('健康检查失败:', error);
 
@@ -122,7 +121,7 @@ class HealthCheck {
   static async checkDatabase() {
     try {
       const dbHealth = await db.healthCheck();
-      
+
       if (dbHealth.mysql && dbHealth.redis) {
         return {
           status: 'healthy',
@@ -150,17 +149,17 @@ class HealthCheck {
     try {
       const testKey = 'health_check_test';
       const testValue = { timestamp: Date.now(), test: true };
-      
+
       // 测试设置缓存
       await db.setCache(testKey, testValue, 10);
-      
+
       // 测试获取缓存
       const cachedValue = await db.getCache(testKey);
-      
+
       if (cachedValue && cachedValue.test === true) {
         // 清理测试数据
         await db.deleteCache(testKey);
-        
+
         return {
           status: 'healthy',
           message: '缓存服务正常',
@@ -185,10 +184,10 @@ class HealthCheck {
   static async checkEmailService() {
     try {
       const emailStatus = EmailService.getStatus();
-      
+
       if (emailStatus.initialized) {
         const testResult = await EmailService.testConnection();
-        
+
         if (testResult.success) {
           return {
             status: 'healthy',
@@ -222,7 +221,7 @@ class HealthCheck {
   static async checkPushService() {
     try {
       const pushStatus = PushNotificationService.getStatus();
-      
+
       if (pushStatus.initialized && pushStatus.serviceAvailable) {
         return {
           status: 'healthy',
@@ -256,7 +255,7 @@ class HealthCheck {
     try {
       const fs = await import('node:fs/promises');
       const stats = await fs.statSync('.');
-      
+
       // 简化的磁盘空间检查
       // 在实际应用中，你可能需要使用更专业的库来获取磁盘使用情况
       return {
@@ -284,13 +283,14 @@ class HealthCheck {
       const totalMem = os.totalmem();
       const freeMem = os.freemem();
       const usedMem = totalMem - freeMem;
-      
+
       const memoryUsagePercentage = (usedMem / totalMem) * 100;
-      const heapUsagePercentage = (memUsage.heapUsed / memUsage.heapTotal) * 100;
-      
+      const heapUsagePercentage =
+        (memUsage.heapUsed / memUsage.heapTotal) * 100;
+
       let status = 'healthy';
       let message = '内存使用正常';
-      
+
       if (memoryUsagePercentage > 90 || heapUsagePercentage > 90) {
         status = 'unhealthy';
         message = '内存使用率过高';
@@ -298,7 +298,7 @@ class HealthCheck {
         status = 'degraded';
         message = '内存使用率较高';
       }
-      
+
       return {
         status,
         message,
@@ -343,7 +343,7 @@ class HealthCheck {
   // 计算整体健康状态
   static calculateOverallStatus(checks) {
     const statuses = Object.values(checks).map(check => check.status);
-    
+
     if (statuses.includes('unhealthy')) {
       return 'unhealthy';
     } else if (statuses.includes('degraded')) {
@@ -386,12 +386,10 @@ class HealthCheck {
   static async readiness(req, res) {
     try {
       // 检查关键服务是否就绪
-      const [databaseReady] = await Promise.allSettled([
-        db.healthCheck(),
-      ]);
+      const [databaseReady] = await Promise.allSettled([db.healthCheck()]);
 
       const dbResult = HealthCheck.getCheckResult(databaseReady);
-      
+
       if (dbResult.status === 'healthy') {
         res.status(200).json({
           status: 'ready',
@@ -440,12 +438,10 @@ class HealthCheck {
   static async startup(req, res) {
     try {
       // 检查启动依赖项
-      const [databaseStarted] = await Promise.allSettled([
-        db.healthCheck(),
-      ]);
+      const [databaseStarted] = await Promise.allSettled([db.healthCheck()]);
 
       const dbResult = HealthCheck.getCheckResult(databaseStarted);
-      
+
       if (dbResult.status === 'healthy') {
         res.status(200).json({
           status: 'started',
@@ -518,7 +514,6 @@ class HealthCheck {
           cpus: (await import('node:os')).cpus().length,
         },
       });
-
     } catch (error) {
       logger.error('性能基准测试失败:', error);
       res.status(500).json({

@@ -41,7 +41,7 @@ class Server {
   async initialize() {
     try {
       console.log('🚀 开始初始化应用程序...');
-      
+
       // 连接数据库
       console.log('📦 准备连接数据库...');
       await db.connect();
@@ -75,58 +75,68 @@ class Server {
 
     // 安全中间件
     if (config.security.helmetEnabled) {
-      this.app.use(helmet({
-        contentSecurityPolicy: {
-          directives: {
-            defaultSrc: ["'self'"],
-            styleSrc: ["'self'", "'unsafe-inline'"],
-            scriptSrc: ["'self'"],
-            imgSrc: ["'self'", "data:", "https:"],
+      this.app.use(
+        helmet({
+          contentSecurityPolicy: {
+            directives: {
+              defaultSrc: ["'self'"],
+              styleSrc: ["'self'", "'unsafe-inline'"],
+              scriptSrc: ["'self'"],
+              imgSrc: ["'self'", 'data:', 'https:'],
+            },
           },
-        },
-        crossOriginEmbedderPolicy: false,
-      }));
+          crossOriginEmbedderPolicy: false,
+        })
+      );
     }
 
     // CORS配置
-    this.app.use(cors({
-      origin: config.cors.origin,
-      credentials: config.cors.credentials,
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'],
-      exposedHeaders: ['X-RateLimit-Limit', 'X-RateLimit-Remaining'],
-    }));
+    this.app.use(
+      cors({
+        origin: config.cors.origin,
+        credentials: config.cors.credentials,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'],
+        exposedHeaders: ['X-RateLimit-Limit', 'X-RateLimit-Remaining'],
+      })
+    );
 
     // 请求压缩
     this.app.use(compression());
 
     // 请求解析
-    this.app.use(express.json({ 
-      limit: '10mb',
-      type: ['application/json', 'text/plain']
-    }));
-    this.app.use(express.urlencoded({ 
-      extended: true, 
-      limit: '10mb' 
-    }));
+    this.app.use(
+      express.json({
+        limit: '10mb',
+        type: ['application/json', 'text/plain'],
+      })
+    );
+    this.app.use(
+      express.urlencoded({
+        extended: true,
+        limit: '10mb',
+      })
+    );
 
     // 静态文件服务
-    this.app.use('/uploads', express.static(
-      join(__dirname, '../uploads'),
-      {
+    this.app.use(
+      '/uploads',
+      express.static(join(__dirname, '../uploads'), {
         maxAge: '1d',
         etag: true,
         lastModified: true,
-      }
-    ));
+      })
+    );
 
     // 请求日志
     if (config.server.env === 'development') {
       this.app.use(morgan('dev'));
     } else {
-      this.app.use(morgan('combined', {
-        stream: { write: (message) => logger.info(message.trim()) }
-      }));
+      this.app.use(
+        morgan('combined', {
+          stream: { write: message => logger.info(message.trim()) },
+        })
+      );
     }
 
     // 自定义请求日志中间件
@@ -225,16 +235,20 @@ class Server {
         },
         apis: [
           join(__dirname, './routes/*.js'),
-          join(__dirname, './controllers/*.js')
+          join(__dirname, './controllers/*.js'),
         ],
       };
 
       const specs = swaggerJsdoc(options);
-      this.app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
-        explorer: true,
-        customCss: '.swagger-ui .topbar { display: none }',
-        customSiteTitle: 'HydrationTracker API Docs',
-      }));
+      this.app.use(
+        '/api-docs',
+        swaggerUi.serve,
+        swaggerUi.setup(specs, {
+          explorer: true,
+          customCss: '.swagger-ui .topbar { display: none }',
+          customSiteTitle: 'HydrationTracker API Docs',
+        })
+      );
 
       logger.info('Swagger文档已启用: /api-docs');
     } catch (error) {
@@ -263,7 +277,7 @@ class Server {
     });
 
     // 处理未捕获的异常
-    process.on('uncaughtException', (error) => {
+    process.on('uncaughtException', error => {
       logger.error('未捕获的异常:', {
         error: error.message,
         stack: error.stack,
@@ -300,7 +314,7 @@ class Server {
     return new Promise((resolve, reject) => {
       const port = config.server.port;
 
-      this.server = this.app.listen(port, (err) => {
+      this.server = this.app.listen(port, err => {
         if (err) {
           logger.error('服务器启动失败:', err);
           reject(err);
@@ -330,7 +344,7 @@ class Server {
       this.server.timeout = 30000; // 30秒
 
       // 处理服务器错误
-      this.server.on('error', (error) => {
+      this.server.on('error', error => {
         if (error.code === 'EADDRINUSE') {
           logger.error(`端口${port}已被占用`);
         } else {
@@ -352,7 +366,7 @@ class Server {
         // 停止接收新请求
         if (this.server) {
           await new Promise((resolve, reject) => {
-            this.server.close((err) => {
+            this.server.close(err => {
               if (err) reject(err);
               else resolve();
             });

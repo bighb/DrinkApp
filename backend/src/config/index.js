@@ -47,7 +47,9 @@ const config = {
   upload: {
     maxSize: parseInt(process.env.UPLOAD_MAX_SIZE, 10) || 5242880, // 5MB
     path: process.env.UPLOAD_PATH || './uploads',
-    allowedTypes: (process.env.ALLOWED_FILE_TYPES || 'jpg,jpeg,png,gif').split(','),
+    allowedTypes: (process.env.ALLOWED_FILE_TYPES || 'jpg,jpeg,png,gif').split(
+      ','
+    ),
   },
 
   // 云存储配置
@@ -110,7 +112,8 @@ const config = {
   rateLimit: {
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) || 60000, // 1分钟
     max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 10) || 100,
-    skipSuccessfulRequests: process.env.RATE_LIMIT_SKIP_SUCCESSFUL_REQUESTS === 'true',
+    skipSuccessfulRequests:
+      process.env.RATE_LIMIT_SKIP_SUCCESSFUL_REQUESTS === 'true',
   },
 
   // 日志配置
@@ -131,7 +134,9 @@ const config = {
 
   // CORS配置
   cors: {
-    origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : ['http://localhost:3000'],
+    origin: process.env.CORS_ORIGIN
+      ? process.env.CORS_ORIGIN.split(',')
+      : ['http://localhost:3000'],
     credentials: process.env.CORS_CREDENTIALS === 'true',
   },
 

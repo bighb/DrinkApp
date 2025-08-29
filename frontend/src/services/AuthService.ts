@@ -1,10 +1,10 @@
 import { ApiService } from './ApiService';
-import { 
-  LoginCredentials, 
-  RegisterCredentials, 
-  UpdateProfileData, 
-  ApiResponse, 
-  User 
+import {
+  LoginCredentials,
+  RegisterCredentials,
+  UpdateProfileData,
+  ApiResponse,
+  User,
 } from '@/types';
 
 export class AuthService {
@@ -13,13 +13,18 @@ export class AuthService {
   /**
    * User login
    */
-  static async login(credentials: LoginCredentials): Promise<ApiResponse<{
-    user: User;
-    token: string;
-    refreshToken: string;
-  }>> {
+  static async login(credentials: LoginCredentials): Promise<
+    ApiResponse<{
+      user: User;
+      token: string;
+      refreshToken: string;
+    }>
+  > {
     try {
-      const response = await ApiService.post(`${this.BASE_URL}/login`, credentials);
+      const response = await ApiService.post(
+        `${this.BASE_URL}/login`,
+        credentials
+      );
       return response;
     } catch (error: any) {
       throw new Error(error.message || 'Login failed');
@@ -29,13 +34,18 @@ export class AuthService {
   /**
    * User registration
    */
-  static async register(credentials: RegisterCredentials): Promise<ApiResponse<{
-    user: User;
-    token: string;
-    refreshToken: string;
-  }>> {
+  static async register(credentials: RegisterCredentials): Promise<
+    ApiResponse<{
+      user: User;
+      token: string;
+      refreshToken: string;
+    }>
+  > {
     try {
-      const response = await ApiService.post(`${this.BASE_URL}/register`, credentials);
+      const response = await ApiService.post(
+        `${this.BASE_URL}/register`,
+        credentials
+      );
       return response;
     } catch (error: any) {
       throw new Error(error.message || 'Registration failed');
@@ -45,10 +55,12 @@ export class AuthService {
   /**
    * Refresh authentication token
    */
-  static async refreshToken(refreshToken: string): Promise<ApiResponse<{
-    token: string;
-    refreshToken: string;
-  }>> {
+  static async refreshToken(refreshToken: string): Promise<
+    ApiResponse<{
+      token: string;
+      refreshToken: string;
+    }>
+  > {
     try {
       const response = await ApiService.post(`${this.BASE_URL}/refresh`, {
         refresh_token: refreshToken,
@@ -64,11 +76,15 @@ export class AuthService {
    */
   static async logout(token: string): Promise<ApiResponse<void>> {
     try {
-      const response = await ApiService.post(`${this.BASE_URL}/logout`, {}, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await ApiService.post(
+        `${this.BASE_URL}/logout`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       return response;
     } catch (error: any) {
       throw new Error(error.message || 'Logout failed');
@@ -78,7 +94,10 @@ export class AuthService {
   /**
    * Update user profile
    */
-  static async updateProfile(data: UpdateProfileData, token: string): Promise<ApiResponse<User>> {
+  static async updateProfile(
+    data: UpdateProfileData,
+    token: string
+  ): Promise<ApiResponse<User>> {
     try {
       const response = await ApiService.put('/users/profile', data, {
         headers: {
@@ -110,7 +129,9 @@ export class AuthService {
   /**
    * Email verification
    */
-  static async verifyEmail(token: string): Promise<ApiResponse<{ message: string }>> {
+  static async verifyEmail(
+    token: string
+  ): Promise<ApiResponse<{ message: string }>> {
     try {
       const response = await ApiService.post(`${this.BASE_URL}/verify-email`, {
         token,
@@ -124,11 +145,16 @@ export class AuthService {
   /**
    * Request password reset
    */
-  static async requestPasswordReset(email: string): Promise<ApiResponse<{ message: string }>> {
+  static async requestPasswordReset(
+    email: string
+  ): Promise<ApiResponse<{ message: string }>> {
     try {
-      const response = await ApiService.post(`${this.BASE_URL}/forgot-password`, {
-        email,
-      });
+      const response = await ApiService.post(
+        `${this.BASE_URL}/forgot-password`,
+        {
+          email,
+        }
+      );
       return response;
     } catch (error: any) {
       throw new Error(error.message || 'Password reset request failed');
@@ -138,12 +164,18 @@ export class AuthService {
   /**
    * Reset password
    */
-  static async resetPassword(token: string, password: string): Promise<ApiResponse<{ message: string }>> {
+  static async resetPassword(
+    token: string,
+    password: string
+  ): Promise<ApiResponse<{ message: string }>> {
     try {
-      const response = await ApiService.post(`${this.BASE_URL}/reset-password`, {
-        token,
-        password,
-      });
+      const response = await ApiService.post(
+        `${this.BASE_URL}/reset-password`,
+        {
+          token,
+          password,
+        }
+      );
       return response;
     } catch (error: any) {
       throw new Error(error.message || 'Password reset failed');
@@ -159,14 +191,18 @@ export class AuthService {
     token: string
   ): Promise<ApiResponse<{ message: string }>> {
     try {
-      const response = await ApiService.post('/users/change-password', {
-        current_password: currentPassword,
-        new_password: newPassword,
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const response = await ApiService.post(
+        '/users/change-password',
+        {
+          current_password: currentPassword,
+          new_password: newPassword,
         },
-      });
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       return response;
     } catch (error: any) {
       throw new Error(error.message || 'Password change failed');
@@ -176,7 +212,9 @@ export class AuthService {
   /**
    * Delete user account
    */
-  static async deleteAccount(token: string): Promise<ApiResponse<{ message: string }>> {
+  static async deleteAccount(
+    token: string
+  ): Promise<ApiResponse<{ message: string }>> {
     try {
       const response = await ApiService.delete('/users/profile', {
         headers: {
@@ -192,7 +230,10 @@ export class AuthService {
   /**
    * Upload avatar
    */
-  static async uploadAvatar(imageUri: string, token: string): Promise<ApiResponse<{ avatar_url: string }>> {
+  static async uploadAvatar(
+    imageUri: string,
+    token: string
+  ): Promise<ApiResponse<{ avatar_url: string }>> {
     try {
       const formData = new FormData();
       formData.append('avatar', {

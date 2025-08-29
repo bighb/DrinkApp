@@ -54,7 +54,7 @@ class DatabaseConnection {
       // 在开发环境中设置较短的连接超时和重试次数
       const connectTimeout = config.server.env === 'development' ? 1000 : 10000;
       const maxRetries = config.server.env === 'development' ? 1 : 10;
-      
+
       // 创建Redis客户端
       this.redis = redis.createClient({
         socket: {
@@ -69,7 +69,7 @@ class DatabaseConnection {
       });
 
       // 错误处理
-      this.redis.on('error', (err) => {
+      this.redis.on('error', err => {
         logger.error('Redis连接错误:', err);
       });
 
@@ -101,12 +101,17 @@ class DatabaseConnection {
   // 初始化所有数据库连接
   async connect() {
     try {
-      logger.info('开始初始化数据库连接...', { timestamp: new Date().toISOString() });
+      logger.info('开始初始化数据库连接...', {
+        timestamp: new Date().toISOString(),
+      });
       logger.info('尝试连接 MySQL 和 Redis...');
-      
+
       const startTime = Date.now();
-      console.log('📊 数据库连接开始:', { mysql: config.db.host, redis: config.redis.host });
-      
+      console.log('📊 数据库连接开始:', {
+        mysql: config.db.host,
+        redis: config.redis.host,
+      });
+
       // 在开发环境中，允许 Redis 连接失败
       if (config.server.env === 'development') {
         try {
@@ -115,14 +120,17 @@ class DatabaseConnection {
           logger.error('MySQL连接失败，无法继续:', error);
           throw error;
         }
-        
+
         try {
           // 在开发环境下，给 Redis 连接设置 3 秒总超时
           await Promise.race([
             this.connectRedis(),
-            new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Redis connection timeout')), 3000)
-            )
+            new Promise((_, reject) =>
+              setTimeout(
+                () => reject(new Error('Redis connection timeout')),
+                3000
+              )
+            ),
           ]);
         } catch (error) {
           logger.warn('Redis连接失败，但在开发环境中继续运行:', error.message);
@@ -137,18 +145,15 @@ class DatabaseConnection {
         }
       } else {
         // 生产环境中，两个数据库都必须连接成功
-        await Promise.all([
-          this.connectMySQL(),
-          this.connectRedis()
-        ]);
+        await Promise.all([this.connectMySQL(), this.connectRedis()]);
       }
-      
+
       this.isConnected = true;
       logger.info('所有数据库连接初始化完成');
-      
+
       return {
         mysql: this.mysql,
-        redis: this.redis
+        redis: this.redis,
       };
     } catch (error) {
       logger.error('数据库连接初始化失败:', error);
@@ -160,17 +165,17 @@ class DatabaseConnection {
   async disconnect() {
     try {
       const promises = [];
-      
+
       if (this.mysql) {
         promises.push(this.mysql.end());
       }
-      
+
       if (this.redis) {
         promises.push(this.redis.quit());
       }
-      
+
       await Promise.all(promises);
-      
+
       this.isConnected = false;
       logger.info('所有数据库连接已关闭');
     } catch (error) {
@@ -184,7 +189,7 @@ class DatabaseConnection {
     const health = {
       mysql: false,
       redis: false,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     try {
@@ -215,16 +220,18 @@ class DatabaseConnection {
       isConnected: this.isConnected,
       mysql: {
         connected: !!this.mysql,
-        poolConfig: this.mysql ? {
-          connectionLimit: this.mysql.config.connectionLimit,
-          acquiredConnections: this.mysql.pool._acquiringConnections.length,
-          freeConnections: this.mysql.pool._freeConnections.length
-        } : null
+        poolConfig: this.mysql
+          ? {
+              connectionLimit: this.mysql.config.connectionLimit,
+              acquiredConnections: this.mysql.pool._acquiringConnections.length,
+              freeConnections: this.mysql.pool._freeConnections.length,
+            }
+          : null,
       },
       redis: {
         connected: this.redis ? this.redis.isReady : false,
-        status: this.redis ? this.redis.status : null
-      }
+        status: this.redis ? this.redis.status : null,
+      },
     };
   }
 
@@ -244,9 +251,9 @@ class DatabaseConnection {
     const connection = await this.mysql.getConnection();
     try {
       await connection.beginTransaction();
-      
+
       const result = await callback(connection);
-      
+
       await connection.commit();
       return result;
     } catch (error) {

@@ -9,7 +9,12 @@ export interface User {
   date_of_birth?: string;
   height?: number;
   weight?: number;
-  activity_level?: 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active' | 'extremely_active';
+  activity_level?:
+    | 'sedentary'
+    | 'lightly_active'
+    | 'moderately_active'
+    | 'very_active'
+    | 'extremely_active';
   daily_water_goal: number;
   wake_up_time: string;
   sleep_time: string;
@@ -77,27 +82,32 @@ export interface HydrationRecord {
   updated_at: string;
 }
 
-export type DrinkType = 
-  | 'water' 
-  | 'tea' 
-  | 'coffee' 
-  | 'juice' 
-  | 'sports_drink' 
-  | 'soda' 
-  | 'alcohol' 
+export type DrinkType =
+  | 'water'
+  | 'tea'
+  | 'coffee'
+  | 'juice'
+  | 'sports_drink'
+  | 'soda'
+  | 'alcohol'
   | 'other';
 
-export type ActivityContext = 
-  | 'work' 
-  | 'exercise' 
-  | 'meal' 
-  | 'wake_up' 
-  | 'before_sleep' 
-  | 'break' 
+export type ActivityContext =
+  | 'work'
+  | 'exercise'
+  | 'meal'
+  | 'wake_up'
+  | 'before_sleep'
+  | 'break'
   | 'other';
 
 export type DrinkTemperature = 'hot' | 'warm' | 'room' | 'cold' | 'iced';
-export type RecordSource = 'manual' | 'quick_add' | 'reminder_response' | 'smart_cup' | 'api_import';
+export type RecordSource =
+  | 'manual'
+  | 'quick_add'
+  | 'reminder_response'
+  | 'smart_cup'
+  | 'api_import';
 
 export interface CreateRecordData {
   amount: number;
@@ -135,7 +145,11 @@ export interface ReminderSetting {
   updated_at: string;
 }
 
-export type ReminderStrategy = 'fixed_interval' | 'smart_adaptive' | 'activity_based' | 'custom';
+export type ReminderStrategy =
+  | 'fixed_interval'
+  | 'smart_adaptive'
+  | 'activity_based'
+  | 'custom';
 
 export interface ReminderLog {
   id: number;
@@ -150,8 +164,20 @@ export interface ReminderLog {
   context?: Record<string, any>;
 }
 
-export type ReminderStatus = 'scheduled' | 'sent' | 'delivered' | 'opened' | 'responded' | 'ignored' | 'failed';
-export type ReminderResponse = 'drink_logged' | 'snooze_5min' | 'snooze_15min' | 'dismiss' | 'none';
+export type ReminderStatus =
+  | 'scheduled'
+  | 'sent'
+  | 'delivered'
+  | 'opened'
+  | 'responded'
+  | 'ignored'
+  | 'failed';
+export type ReminderResponse =
+  | 'drink_logged'
+  | 'snooze_5min'
+  | 'snooze_15min'
+  | 'dismiss'
+  | 'none';
 
 // 统计相关类型
 export interface UserStatistics {
@@ -211,8 +237,19 @@ export interface Achievement {
   is_active: boolean;
 }
 
-export type AchievementCategory = 'consistency' | 'volume' | 'diversity' | 'social' | 'milestone' | 'seasonal';
-export type AchievementDifficulty = 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond';
+export type AchievementCategory =
+  | 'consistency'
+  | 'volume'
+  | 'diversity'
+  | 'social'
+  | 'milestone'
+  | 'seasonal';
+export type AchievementDifficulty =
+  | 'bronze'
+  | 'silver'
+  | 'gold'
+  | 'platinum'
+  | 'diamond';
 
 export interface UserAchievement {
   id: number;
@@ -231,7 +268,12 @@ export interface UserDevice {
   user_id: number;
   device_id: string;
   device_name: string;
-  device_type: 'mobile_app' | 'smart_cup' | 'fitness_tracker' | 'smart_scale' | 'other';
+  device_type:
+    | 'mobile_app'
+    | 'smart_cup'
+    | 'fitness_tracker'
+    | 'smart_scale'
+    | 'other';
   platform?: 'ios' | 'android' | 'web' | 'iot' | 'other';
   push_token?: string;
   push_enabled: boolean;

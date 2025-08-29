@@ -19,20 +19,20 @@ export const colors = {
   info: '#2196F3',
   onSurface: '#212121',
   onSurfaceVariant: '#757575',
-  
+
   // Water theme colors
   waterBlue: '#00BCD4',
   waterLight: '#E0F7FA',
   waterDark: '#00838F',
-  
+
   // Gradient colors
   gradientStart: '#2196F3',
   gradientEnd: '#21CBF3',
-  
+
   // Glass effect
   glassBackground: 'rgba(255, 255, 255, 0.1)',
   glassBorder: 'rgba(255, 255, 255, 0.2)',
-  
+
   // Dark theme
   dark: {
     background: '#121212',
@@ -136,7 +136,7 @@ export const shadows = {
       width: 0,
       height: 4,
     },
-    shadowOpacity: 0.30,
+    shadowOpacity: 0.3,
     shadowRadius: 4.65,
     elevation: 8,
   },

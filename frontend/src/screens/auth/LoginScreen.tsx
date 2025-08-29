@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
-import { 
-  View, 
-  StyleSheet, 
-  ScrollView, 
-  KeyboardAvoidingView, 
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  KeyboardAvoidingView,
   Platform,
-  Alert 
+  Alert,
 } from 'react-native';
-import { 
-  Text, 
-  TextInput, 
-  Button, 
+import {
+  Text,
+  TextInput,
+  Button,
   Card,
   Divider,
-  Snackbar 
+  Snackbar,
 } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -25,12 +25,15 @@ import { AuthStackParamList, LoginCredentials } from '@/types';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { loginUser, clearError } from '@/store/slices/authSlice';
 
-type LoginScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'Login'>;
+type LoginScreenNavigationProp = StackNavigationProp<
+  AuthStackParamList,
+  'Login'
+>;
 
 export const LoginScreen: React.FC = () => {
   const navigation = useNavigation<LoginScreenNavigationProp>();
   const dispatch = useAppDispatch();
-  const { isLoading, error } = useAppSelector((state) => state.auth);
+  const { isLoading, error } = useAppSelector(state => state.auth);
 
   const [credentials, setCredentials] = useState<LoginCredentials>({
     email: '',
@@ -80,7 +83,10 @@ export const LoginScreen: React.FC = () => {
       await dispatch(loginUser(credentials)).unwrap();
       // Navigation will be handled by AuthProvider/AppNavigator
     } catch (error: any) {
-      Alert.alert('Login Failed', error.message || 'Please check your credentials and try again.');
+      Alert.alert(
+        'Login Failed',
+        error.message || 'Please check your credentials and try again.'
+      );
     }
   };
 
@@ -92,9 +98,12 @@ export const LoginScreen: React.FC = () => {
     navigation.navigate('Register');
   };
 
-  const handleInputChange = (field: keyof LoginCredentials, value: string | boolean) => {
+  const handleInputChange = (
+    field: keyof LoginCredentials,
+    value: string | boolean
+  ) => {
     setCredentials(prev => ({ ...prev, [field]: value }));
-    
+
     // Clear errors when user starts typing
     if (field === 'email' && emailError) {
       setEmailError('');
@@ -106,23 +115,25 @@ export const LoginScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         style={styles.keyboardAvoidingView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <ScrollView 
+        <ScrollView
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
           {/* Logo and Welcome */}
-          <Animatable.View 
-            animation="fadeInDown" 
-            duration={1000} 
+          <Animatable.View
+            animation="fadeInDown"
+            duration={1000}
             style={styles.header}
           >
             <Text style={styles.logo}>💧</Text>
             <Text style={styles.title}>HydrationTracker</Text>
-            <Text style={styles.subtitle}>Welcome back! Sign in to continue</Text>
+            <Text style={styles.subtitle}>
+              Welcome back! Sign in to continue
+            </Text>
           </Animatable.View>
 
           {/* Login Form */}
@@ -130,13 +141,13 @@ export const LoginScreen: React.FC = () => {
             <Card style={styles.card}>
               <Card.Content style={styles.cardContent}>
                 <Text style={styles.formTitle}>Sign In</Text>
-                
+
                 {/* Email Input */}
                 <TextInput
                   mode="outlined"
                   label="Email"
                   value={credentials.email}
-                  onChangeText={(text) => handleInputChange('email', text)}
+                  onChangeText={text => handleInputChange('email', text)}
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoComplete="email"
@@ -153,14 +164,14 @@ export const LoginScreen: React.FC = () => {
                   mode="outlined"
                   label="Password"
                   value={credentials.password}
-                  onChangeText={(text) => handleInputChange('password', text)}
+                  onChangeText={text => handleInputChange('password', text)}
                   secureTextEntry={!showPassword}
                   error={!!passwordError}
                   style={styles.input}
                   left={<TextInput.Icon icon="lock" />}
                   right={
-                    <TextInput.Icon 
-                      icon={showPassword ? 'eye-off' : 'eye'} 
+                    <TextInput.Icon
+                      icon={showPassword ? 'eye-off' : 'eye'}
                       onPress={() => setShowPassword(!showPassword)}
                     />
                   }

@@ -11,27 +11,27 @@ interface LoadingScreenProps {
   showLogo?: boolean;
 }
 
-export const LoadingScreen: React.FC<LoadingScreenProps> = ({ 
-  message = 'Loading...', 
-  showLogo = true 
+export const LoadingScreen: React.FC<LoadingScreenProps> = ({
+  message = 'Loading...',
+  showLogo = true,
 }) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         {showLogo && (
-          <Animatable.View 
-            animation="pulse" 
-            iterationCount="infinite" 
+          <Animatable.View
+            animation="pulse"
+            iterationCount="infinite"
             duration={2000}
             style={styles.logoContainer}
           >
             <Text style={styles.logo}>💧</Text>
           </Animatable.View>
         )}
-        
+
         <View style={styles.loadingContainer}>
-          <ActivityIndicator 
-            size="large" 
+          <ActivityIndicator
+            size="large"
             color={theme.colors.primary}
             style={styles.spinner}
           />

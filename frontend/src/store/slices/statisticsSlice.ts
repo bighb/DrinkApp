@@ -21,24 +21,30 @@ const initialState: StatisticsState = {
 // Async thunks
 export const fetchStatistics = createAsyncThunk(
   'statistics/fetchStatistics',
-  async (params: {
-    type: 'daily' | 'weekly' | 'monthly';
-    startDate: string;
-    endDate: string;
-  }, { getState, rejectWithValue }) => {
+  async (
+    params: {
+      type: 'daily' | 'weekly' | 'monthly';
+      startDate: string;
+      endDate: string;
+    },
+    { getState, rejectWithValue }
+  ) => {
     try {
       const { auth } = getState() as RootState;
-      
+
       if (!auth.token) {
         throw new Error('No authentication token');
       }
-      
-      const response = await StatisticsService.getStatistics(params, auth.token);
-      
+
+      const response = await StatisticsService.getStatistics(
+        params,
+        auth.token
+      );
+
       if (response.success && response.data) {
         return { type: params.type, data: response.data };
       }
-      
+
       throw new Error(response.message || 'Failed to fetch statistics');
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to fetch statistics');
@@ -51,20 +57,22 @@ export const fetchDashboardStats = createAsyncThunk(
   async (_, { getState, rejectWithValue }) => {
     try {
       const { auth } = getState() as RootState;
-      
+
       if (!auth.token) {
         throw new Error('No authentication token');
       }
-      
+
       const response = await StatisticsService.getDashboardStats(auth.token);
-      
+
       if (response.success && response.data) {
         return response.data;
       }
-      
+
       throw new Error(response.message || 'Failed to fetch dashboard stats');
     } catch (error: any) {
-      return rejectWithValue(error.message || 'Failed to fetch dashboard stats');
+      return rejectWithValue(
+        error.message || 'Failed to fetch dashboard stats'
+      );
     }
   }
 );
@@ -74,18 +82,22 @@ export const fetchWeeklyReport = createAsyncThunk(
   async (weekStart?: string, { getState, rejectWithValue }) => {
     try {
       const { auth } = getState() as RootState;
-      
+
       if (!auth.token) {
         throw new Error('No authentication token');
       }
-      
-      const startDate = weekStart || moment().startOf('week').format('YYYY-MM-DD');
-      const response = await StatisticsService.getWeeklyReport(startDate, auth.token);
-      
+
+      const startDate =
+        weekStart || moment().startOf('week').format('YYYY-MM-DD');
+      const response = await StatisticsService.getWeeklyReport(
+        startDate,
+        auth.token
+      );
+
       if (response.success && response.data) {
         return response.data;
       }
-      
+
       throw new Error(response.message || 'Failed to fetch weekly report');
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to fetch weekly report');
@@ -98,18 +110,22 @@ export const fetchMonthlyReport = createAsyncThunk(
   async (monthStart?: string, { getState, rejectWithValue }) => {
     try {
       const { auth } = getState() as RootState;
-      
+
       if (!auth.token) {
         throw new Error('No authentication token');
       }
-      
-      const startDate = monthStart || moment().startOf('month').format('YYYY-MM-DD');
-      const response = await StatisticsService.getMonthlyReport(startDate, auth.token);
-      
+
+      const startDate =
+        monthStart || moment().startOf('month').format('YYYY-MM-DD');
+      const response = await StatisticsService.getMonthlyReport(
+        startDate,
+        auth.token
+      );
+
       if (response.success && response.data) {
         return response.data;
       }
-      
+
       throw new Error(response.message || 'Failed to fetch monthly report');
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to fetch monthly report');
@@ -119,51 +135,65 @@ export const fetchMonthlyReport = createAsyncThunk(
 
 export const fetchHydrationTrends = createAsyncThunk(
   'statistics/fetchHydrationTrends',
-  async (params: {
-    period: 'week' | 'month' | 'quarter' | 'year';
-    startDate?: string;
-  }, { getState, rejectWithValue }) => {
+  async (
+    params: {
+      period: 'week' | 'month' | 'quarter' | 'year';
+      startDate?: string;
+    },
+    { getState, rejectWithValue }
+  ) => {
     try {
       const { auth } = getState() as RootState;
-      
+
       if (!auth.token) {
         throw new Error('No authentication token');
       }
-      
-      const response = await StatisticsService.getHydrationTrends(params, auth.token);
-      
+
+      const response = await StatisticsService.getHydrationTrends(
+        params,
+        auth.token
+      );
+
       if (response.success && response.data) {
         return response.data;
       }
-      
+
       throw new Error(response.message || 'Failed to fetch hydration trends');
     } catch (error: any) {
-      return rejectWithValue(error.message || 'Failed to fetch hydration trends');
+      return rejectWithValue(
+        error.message || 'Failed to fetch hydration trends'
+      );
     }
   }
 );
 
 export const exportStatistics = createAsyncThunk(
   'statistics/exportStatistics',
-  async (params: {
-    format: 'csv' | 'pdf' | 'json';
-    startDate: string;
-    endDate: string;
-    includeCharts?: boolean;
-  }, { getState, rejectWithValue }) => {
+  async (
+    params: {
+      format: 'csv' | 'pdf' | 'json';
+      startDate: string;
+      endDate: string;
+      includeCharts?: boolean;
+    },
+    { getState, rejectWithValue }
+  ) => {
     try {
       const { auth } = getState() as RootState;
-      
+
       if (!auth.token) {
         throw new Error('No authentication token');
       }
-      
-      const response = await StatisticsService.exportStatistics(params, auth.token);
-      
+
+      const response = await StatisticsService.exportStatistics(
+        params,
+        auth.token
+      );
+
       if (response.success && response.data) {
         return response.data;
       }
-      
+
       throw new Error(response.message || 'Failed to export statistics');
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to export statistics');
@@ -176,60 +206,79 @@ const statisticsSlice = createSlice({
   name: 'statistics',
   initialState,
   reducers: {
-    clearError: (state) => {
+    clearError: state => {
       state.error = null;
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
     },
-    setSelectedPeriod: (state, action: PayloadAction<'daily' | 'weekly' | 'monthly'>) => {
+    setSelectedPeriod: (
+      state,
+      action: PayloadAction<'daily' | 'weekly' | 'monthly'>
+    ) => {
       state.selectedPeriod = action.payload;
     },
-    setDateRange: (state, action: PayloadAction<{ start: string; end: string }>) => {
+    setDateRange: (
+      state,
+      action: PayloadAction<{ start: string; end: string }>
+    ) => {
       state.dateRange = action.payload;
     },
-    clearStatistics: (state) => {
+    clearStatistics: state => {
       state.daily = [];
       state.weekly = [];
       state.monthly = [];
     },
     // Local statistics calculation for offline mode
-    calculateLocalStats: (state, action: PayloadAction<{
-      records: any[];
-      userGoal: number;
-    }>) => {
+    calculateLocalStats: (
+      state,
+      action: PayloadAction<{
+        records: any[];
+        userGoal: number;
+      }>
+    ) => {
       const { records, userGoal } = action.payload;
       const today = moment().format('YYYY-MM-DD');
-      
+
       // Calculate today's stats
-      const todayRecords = records.filter(record => 
-        moment(record.recorded_at).format('YYYY-MM-DD') === today
+      const todayRecords = records.filter(
+        record => moment(record.recorded_at).format('YYYY-MM-DD') === today
       );
-      
-      const totalIntake = todayRecords.reduce((sum, record) => sum + record.amount, 0);
+
+      const totalIntake = todayRecords.reduce(
+        (sum, record) => sum + record.amount,
+        0
+      );
       const recordCount = todayRecords.length;
       const achievementRate = Math.min((totalIntake / userGoal) * 100, 100);
-      
+
       // Calculate drink type percentages
       const drinkTypeCounts = todayRecords.reduce((acc, record) => {
         acc[record.drink_type] = (acc[record.drink_type] || 0) + record.amount;
         return acc;
       }, {});
-      
-      const waterPercentage = ((drinkTypeCounts.water || 0) / totalIntake) * 100 || 0;
-      const teaPercentage = ((drinkTypeCounts.tea || 0) / totalIntake) * 100 || 0;
-      const coffeePercentage = ((drinkTypeCounts.coffee || 0) / totalIntake) * 100 || 0;
-      const otherPercentage = 100 - waterPercentage - teaPercentage - coffeePercentage;
-      
+
+      const waterPercentage =
+        ((drinkTypeCounts.water || 0) / totalIntake) * 100 || 0;
+      const teaPercentage =
+        ((drinkTypeCounts.tea || 0) / totalIntake) * 100 || 0;
+      const coffeePercentage =
+        ((drinkTypeCounts.coffee || 0) / totalIntake) * 100 || 0;
+      const otherPercentage =
+        100 - waterPercentage - teaPercentage - coffeePercentage;
+
       // Calculate time distribution
-      const timeDistribution = todayRecords.reduce((acc, record) => {
-        const hour = moment(record.recorded_at).hour();
-        if (hour < 12) acc.morning += record.amount;
-        else if (hour < 18) acc.afternoon += record.amount;
-        else acc.evening += record.amount;
-        return acc;
-      }, { morning: 0, afternoon: 0, evening: 0 });
-      
+      const timeDistribution = todayRecords.reduce(
+        (acc, record) => {
+          const hour = moment(record.recorded_at).hour();
+          if (hour < 12) acc.morning += record.amount;
+          else if (hour < 18) acc.afternoon += record.amount;
+          else acc.evening += record.amount;
+          return acc;
+        },
+        { morning: 0, afternoon: 0, evening: 0 }
+      );
+
       // Create local daily stat
       const localDailyStat: UserStatistics = {
         id: 0,
@@ -256,9 +305,11 @@ const statisticsSlice = createSlice({
         created_at: moment().toISOString(),
         updated_at: moment().toISOString(),
       };
-      
+
       // Update or add today's stat
-      const existingIndex = state.daily.findIndex(stat => stat.stat_date === today);
+      const existingIndex = state.daily.findIndex(
+        stat => stat.stat_date === today
+      );
       if (existingIndex !== -1) {
         state.daily[existingIndex] = localDailyStat;
       } else {
@@ -266,17 +317,17 @@ const statisticsSlice = createSlice({
       }
     },
   },
-  extraReducers: (builder) => {
+  extraReducers: builder => {
     // Fetch statistics
     builder
-      .addCase(fetchStatistics.pending, (state) => {
+      .addCase(fetchStatistics.pending, state => {
         state.isLoading = true;
         state.error = null;
       })
       .addCase(fetchStatistics.fulfilled, (state, action) => {
         state.isLoading = false;
         const { type, data } = action.payload;
-        
+
         switch (type) {
           case 'daily':
             state.daily = data;
@@ -296,7 +347,7 @@ const statisticsSlice = createSlice({
 
     // Fetch dashboard stats
     builder
-      .addCase(fetchDashboardStats.pending, (state) => {
+      .addCase(fetchDashboardStats.pending, state => {
         state.isLoading = true;
         state.error = null;
       })
@@ -314,7 +365,7 @@ const statisticsSlice = createSlice({
 
     // Fetch weekly report
     builder
-      .addCase(fetchWeeklyReport.pending, (state) => {
+      .addCase(fetchWeeklyReport.pending, state => {
         state.isLoading = true;
         state.error = null;
       })
@@ -332,7 +383,7 @@ const statisticsSlice = createSlice({
 
     // Fetch monthly report
     builder
-      .addCase(fetchMonthlyReport.pending, (state) => {
+      .addCase(fetchMonthlyReport.pending, state => {
         state.isLoading = true;
         state.error = null;
       })
@@ -350,7 +401,7 @@ const statisticsSlice = createSlice({
 
     // Fetch hydration trends
     builder
-      .addCase(fetchHydrationTrends.pending, (state) => {
+      .addCase(fetchHydrationTrends.pending, state => {
         state.isLoading = true;
         state.error = null;
       })
@@ -366,11 +417,11 @@ const statisticsSlice = createSlice({
 
     // Export statistics
     builder
-      .addCase(exportStatistics.pending, (state) => {
+      .addCase(exportStatistics.pending, state => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(exportStatistics.fulfilled, (state) => {
+      .addCase(exportStatistics.fulfilled, state => {
         state.isLoading = false;
         // Export doesn't change state, just triggers download
       })
@@ -381,12 +432,12 @@ const statisticsSlice = createSlice({
   },
 });
 
-export const { 
-  clearError, 
-  setLoading, 
-  setSelectedPeriod, 
+export const {
+  clearError,
+  setLoading,
+  setSelectedPeriod,
   setDateRange,
   clearStatistics,
-  calculateLocalStats
+  calculateLocalStats,
 } = statisticsSlice.actions;
 export default statisticsSlice.reducer;

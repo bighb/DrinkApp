@@ -19,17 +19,17 @@ export const fetchAchievements = createAsyncThunk(
   async (_, { getState, rejectWithValue }) => {
     try {
       const { auth } = getState() as RootState;
-      
+
       if (!auth.token) {
         throw new Error('No authentication token');
       }
-      
+
       const response = await AchievementService.getAllAchievements(auth.token);
-      
+
       if (response.success && response.data) {
         return response.data;
       }
-      
+
       throw new Error(response.message || 'Failed to fetch achievements');
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to fetch achievements');
@@ -42,20 +42,22 @@ export const fetchUserAchievements = createAsyncThunk(
   async (_, { getState, rejectWithValue }) => {
     try {
       const { auth } = getState() as RootState;
-      
+
       if (!auth.token) {
         throw new Error('No authentication token');
       }
-      
+
       const response = await AchievementService.getUserAchievements(auth.token);
-      
+
       if (response.success && response.data) {
         return response.data;
       }
-      
+
       throw new Error(response.message || 'Failed to fetch user achievements');
     } catch (error: any) {
-      return rejectWithValue(error.message || 'Failed to fetch user achievements');
+      return rejectWithValue(
+        error.message || 'Failed to fetch user achievements'
+      );
     }
   }
 );
@@ -65,20 +67,27 @@ export const fetchRecentAchievements = createAsyncThunk(
   async (limit: number = 5, { getState, rejectWithValue }) => {
     try {
       const { auth } = getState() as RootState;
-      
+
       if (!auth.token) {
         throw new Error('No authentication token');
       }
-      
-      const response = await AchievementService.getRecentAchievements(limit, auth.token);
-      
+
+      const response = await AchievementService.getRecentAchievements(
+        limit,
+        auth.token
+      );
+
       if (response.success && response.data) {
         return response.data;
       }
-      
-      throw new Error(response.message || 'Failed to fetch recent achievements');
+
+      throw new Error(
+        response.message || 'Failed to fetch recent achievements'
+      );
     } catch (error: any) {
-      return rejectWithValue(error.message || 'Failed to fetch recent achievements');
+      return rejectWithValue(
+        error.message || 'Failed to fetch recent achievements'
+      );
     }
   }
 );
@@ -88,17 +97,17 @@ export const checkAchievements = createAsyncThunk(
   async (_, { getState, rejectWithValue }) => {
     try {
       const { auth } = getState() as RootState;
-      
+
       if (!auth.token) {
         throw new Error('No authentication token');
       }
-      
+
       const response = await AchievementService.checkAchievements(auth.token);
-      
+
       if (response.success && response.data) {
         return response.data;
       }
-      
+
       throw new Error(response.message || 'Failed to check achievements');
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to check achievements');
@@ -108,27 +117,37 @@ export const checkAchievements = createAsyncThunk(
 
 export const updateAchievementPreferences = createAsyncThunk(
   'achievements/updatePreferences',
-  async (preferences: {
-    achievementId: number;
-    isDisplayed?: boolean;
-    isFavorite?: boolean;
-  }, { getState, rejectWithValue }) => {
+  async (
+    preferences: {
+      achievementId: number;
+      isDisplayed?: boolean;
+      isFavorite?: boolean;
+    },
+    { getState, rejectWithValue }
+  ) => {
     try {
       const { auth } = getState() as RootState;
-      
+
       if (!auth.token) {
         throw new Error('No authentication token');
       }
-      
-      const response = await AchievementService.updateAchievementPreferences(preferences, auth.token);
-      
+
+      const response = await AchievementService.updateAchievementPreferences(
+        preferences,
+        auth.token
+      );
+
       if (response.success && response.data) {
         return response.data;
       }
-      
-      throw new Error(response.message || 'Failed to update achievement preferences');
+
+      throw new Error(
+        response.message || 'Failed to update achievement preferences'
+      );
     } catch (error: any) {
-      return rejectWithValue(error.message || 'Failed to update achievement preferences');
+      return rejectWithValue(
+        error.message || 'Failed to update achievement preferences'
+      );
     }
   }
 );
@@ -138,17 +157,20 @@ export const shareAchievement = createAsyncThunk(
   async (achievementId: number, { getState, rejectWithValue }) => {
     try {
       const { auth } = getState() as RootState;
-      
+
       if (!auth.token) {
         throw new Error('No authentication token');
       }
-      
-      const response = await AchievementService.shareAchievement(achievementId, auth.token);
-      
+
+      const response = await AchievementService.shareAchievement(
+        achievementId,
+        auth.token
+      );
+
       if (response.success && response.data) {
         return response.data;
       }
-      
+
       throw new Error(response.message || 'Failed to share achievement');
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to share achievement');
@@ -163,9 +185,11 @@ const calculateTotalPoints = (userAchievements: UserAchievement[]): number => {
   }, 0);
 };
 
-const sortAchievementsByDate = (achievements: UserAchievement[]): UserAchievement[] => {
-  return [...achievements].sort((a, b) => 
-    new Date(b.earned_at).getTime() - new Date(a.earned_at).getTime()
+const sortAchievementsByDate = (
+  achievements: UserAchievement[]
+): UserAchievement[] => {
+  return [...achievements].sort(
+    (a, b) => new Date(b.earned_at).getTime() - new Date(a.earned_at).getTime()
   );
 };
 
@@ -174,7 +198,7 @@ const achievementSlice = createSlice({
   name: 'achievements',
   initialState,
   reducers: {
-    clearError: (state) => {
+    clearError: state => {
       state.error = null;
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
@@ -184,12 +208,12 @@ const achievementSlice = createSlice({
       // Add newly earned achievement
       state.userAchievements.push(action.payload);
       state.recentAchievements.unshift(action.payload);
-      
+
       // Keep only the 5 most recent
       if (state.recentAchievements.length > 5) {
         state.recentAchievements = state.recentAchievements.slice(0, 5);
       }
-      
+
       // Recalculate total points
       state.totalPoints = calculateTotalPoints(state.userAchievements);
     },
@@ -198,48 +222,54 @@ const achievementSlice = createSlice({
       const index = state.recentAchievements.findIndex(
         achievement => achievement.id === action.payload
       );
-      
+
       if (index !== -1) {
         // Could add a 'seen' flag if needed
         // For now, we'll just acknowledge it's been seen
       }
     },
-    clearRecentAchievements: (state) => {
+    clearRecentAchievements: state => {
       state.recentAchievements = [];
     },
-    updateAchievementDisplay: (state, action: PayloadAction<{
-      achievementId: number;
-      isDisplayed: boolean;
-    }>) => {
+    updateAchievementDisplay: (
+      state,
+      action: PayloadAction<{
+        achievementId: number;
+        isDisplayed: boolean;
+      }>
+    ) => {
       const { achievementId, isDisplayed } = action.payload;
-      
+
       const index = state.userAchievements.findIndex(
         ua => ua.achievement_id === achievementId
       );
-      
+
       if (index !== -1) {
         state.userAchievements[index].is_displayed = isDisplayed;
       }
     },
-    updateAchievementFavorite: (state, action: PayloadAction<{
-      achievementId: number;
-      isFavorite: boolean;
-    }>) => {
+    updateAchievementFavorite: (
+      state,
+      action: PayloadAction<{
+        achievementId: number;
+        isFavorite: boolean;
+      }>
+    ) => {
       const { achievementId, isFavorite } = action.payload;
-      
+
       const index = state.userAchievements.findIndex(
         ua => ua.achievement_id === achievementId
       );
-      
+
       if (index !== -1) {
         state.userAchievements[index].is_favorite = isFavorite;
       }
     },
   },
-  extraReducers: (builder) => {
+  extraReducers: builder => {
     // Fetch all achievements
     builder
-      .addCase(fetchAchievements.pending, (state) => {
+      .addCase(fetchAchievements.pending, state => {
         state.isLoading = true;
         state.error = null;
       })
@@ -254,7 +284,7 @@ const achievementSlice = createSlice({
 
     // Fetch user achievements
     builder
-      .addCase(fetchUserAchievements.pending, (state) => {
+      .addCase(fetchUserAchievements.pending, state => {
         state.isLoading = true;
         state.error = null;
       })
@@ -270,7 +300,7 @@ const achievementSlice = createSlice({
 
     // Fetch recent achievements
     builder
-      .addCase(fetchRecentAchievements.pending, (state) => {
+      .addCase(fetchRecentAchievements.pending, state => {
         state.isLoading = true;
         state.error = null;
       })
@@ -285,34 +315,43 @@ const achievementSlice = createSlice({
 
     // Check achievements
     builder
-      .addCase(checkAchievements.pending, (state) => {
+      .addCase(checkAchievements.pending, state => {
         state.isLoading = true;
         state.error = null;
       })
       .addCase(checkAchievements.fulfilled, (state, action) => {
         state.isLoading = false;
-        
+
         // Add newly earned achievements
-        if (action.payload.newAchievements && action.payload.newAchievements.length > 0) {
-          action.payload.newAchievements.forEach((achievement: UserAchievement) => {
-            // Check if achievement already exists
-            const exists = state.userAchievements.find(ua => ua.id === achievement.id);
-            if (!exists) {
-              state.userAchievements.push(achievement);
-              state.recentAchievements.unshift(achievement);
+        if (
+          action.payload.newAchievements &&
+          action.payload.newAchievements.length > 0
+        ) {
+          action.payload.newAchievements.forEach(
+            (achievement: UserAchievement) => {
+              // Check if achievement already exists
+              const exists = state.userAchievements.find(
+                ua => ua.id === achievement.id
+              );
+              if (!exists) {
+                state.userAchievements.push(achievement);
+                state.recentAchievements.unshift(achievement);
+              }
             }
-          });
-          
+          );
+
           // Keep only the 5 most recent
           if (state.recentAchievements.length > 5) {
             state.recentAchievements = state.recentAchievements.slice(0, 5);
           }
-          
+
           // Recalculate total points
           state.totalPoints = calculateTotalPoints(state.userAchievements);
-          
+
           // Sort achievements by date
-          state.userAchievements = sortAchievementsByDate(state.userAchievements);
+          state.userAchievements = sortAchievementsByDate(
+            state.userAchievements
+          );
         }
       })
       .addCase(checkAchievements.rejected, (state, action) => {
@@ -322,18 +361,18 @@ const achievementSlice = createSlice({
 
     // Update achievement preferences
     builder
-      .addCase(updateAchievementPreferences.pending, (state) => {
+      .addCase(updateAchievementPreferences.pending, state => {
         state.isLoading = true;
         state.error = null;
       })
       .addCase(updateAchievementPreferences.fulfilled, (state, action) => {
         state.isLoading = false;
-        
+
         // Update the achievement in the list
         const index = state.userAchievements.findIndex(
           ua => ua.id === action.payload.id
         );
-        
+
         if (index !== -1) {
           state.userAchievements[index] = action.payload;
         }
@@ -345,11 +384,11 @@ const achievementSlice = createSlice({
 
     // Share achievement
     builder
-      .addCase(shareAchievement.pending, (state) => {
+      .addCase(shareAchievement.pending, state => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(shareAchievement.fulfilled, (state) => {
+      .addCase(shareAchievement.fulfilled, state => {
         state.isLoading = false;
         // Sharing doesn't change local state
       })
@@ -360,13 +399,13 @@ const achievementSlice = createSlice({
   },
 });
 
-export const { 
-  clearError, 
-  setLoading, 
+export const {
+  clearError,
+  setLoading,
   addNewAchievement,
   markAchievementAsSeen,
   clearRecentAchievements,
   updateAchievementDisplay,
-  updateAchievementFavorite
+  updateAchievementFavorite,
 } = achievementSlice.actions;
 export default achievementSlice.reducer;

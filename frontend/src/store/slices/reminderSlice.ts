@@ -19,20 +19,22 @@ export const fetchReminderSettings = createAsyncThunk(
   async (_, { getState, rejectWithValue }) => {
     try {
       const { auth } = getState() as RootState;
-      
+
       if (!auth.token) {
         throw new Error('No authentication token');
       }
-      
+
       const response = await ReminderService.getSettings(auth.token);
-      
+
       if (response.success && response.data) {
         return response.data;
       }
-      
+
       throw new Error(response.message || 'Failed to fetch reminder settings');
     } catch (error: any) {
-      return rejectWithValue(error.message || 'Failed to fetch reminder settings');
+      return rejectWithValue(
+        error.message || 'Failed to fetch reminder settings'
+      );
     }
   }
 );
@@ -42,45 +44,53 @@ export const updateReminderSettings = createAsyncThunk(
   async (settings: Partial<ReminderSetting>, { getState, rejectWithValue }) => {
     try {
       const { auth } = getState() as RootState;
-      
+
       if (!auth.token) {
         throw new Error('No authentication token');
       }
-      
-      const response = await ReminderService.updateSettings(settings, auth.token);
-      
+
+      const response = await ReminderService.updateSettings(
+        settings,
+        auth.token
+      );
+
       if (response.success && response.data) {
         return response.data;
       }
-      
+
       throw new Error(response.message || 'Failed to update reminder settings');
     } catch (error: any) {
-      return rejectWithValue(error.message || 'Failed to update reminder settings');
+      return rejectWithValue(
+        error.message || 'Failed to update reminder settings'
+      );
     }
   }
 );
 
 export const fetchReminderLogs = createAsyncThunk(
   'reminders/fetchLogs',
-  async (params: {
-    startDate?: string;
-    endDate?: string;
-    status?: string;
-    limit?: number;
-  } = {}, { getState, rejectWithValue }) => {
+  async (
+    params: {
+      startDate?: string;
+      endDate?: string;
+      status?: string;
+      limit?: number;
+    } = {},
+    { getState, rejectWithValue }
+  ) => {
     try {
       const { auth } = getState() as RootState;
-      
+
       if (!auth.token) {
         throw new Error('No authentication token');
       }
-      
+
       const response = await ReminderService.getLogs(params, auth.token);
-      
+
       if (response.success && response.data) {
         return response.data;
       }
-      
+
       throw new Error(response.message || 'Failed to fetch reminder logs');
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to fetch reminder logs');
@@ -90,28 +100,36 @@ export const fetchReminderLogs = createAsyncThunk(
 
 export const respondToReminder = createAsyncThunk(
   'reminders/respondToReminder',
-  async ({ 
-    logId, 
-    responseType, 
-    amount 
-  }: { 
-    logId: number; 
-    responseType: 'drink_logged' | 'snooze_5min' | 'snooze_15min' | 'dismiss';
-    amount?: number;
-  }, { getState, rejectWithValue }) => {
+  async (
+    {
+      logId,
+      responseType,
+      amount,
+    }: {
+      logId: number;
+      responseType: 'drink_logged' | 'snooze_5min' | 'snooze_15min' | 'dismiss';
+      amount?: number;
+    },
+    { getState, rejectWithValue }
+  ) => {
     try {
       const { auth } = getState() as RootState;
-      
+
       if (!auth.token) {
         throw new Error('No authentication token');
       }
-      
-      const response = await ReminderService.respondToReminder(logId, responseType, amount, auth.token);
-      
+
+      const response = await ReminderService.respondToReminder(
+        logId,
+        responseType,
+        amount,
+        auth.token
+      );
+
       if (response.success && response.data) {
         return response.data;
       }
-      
+
       throw new Error(response.message || 'Failed to respond to reminder');
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to respond to reminder');
@@ -124,17 +142,20 @@ export const scheduleReminder = createAsyncThunk(
   async (scheduledAt: string, { getState, rejectWithValue }) => {
     try {
       const { auth } = getState() as RootState;
-      
+
       if (!auth.token) {
         throw new Error('No authentication token');
       }
-      
-      const response = await ReminderService.scheduleReminder(scheduledAt, auth.token);
-      
+
+      const response = await ReminderService.scheduleReminder(
+        scheduledAt,
+        auth.token
+      );
+
       if (response.success && response.data) {
         return response.data;
       }
-      
+
       throw new Error(response.message || 'Failed to schedule reminder');
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to schedule reminder');
@@ -147,17 +168,17 @@ export const getNextReminder = createAsyncThunk(
   async (_, { getState, rejectWithValue }) => {
     try {
       const { auth } = getState() as RootState;
-      
+
       if (!auth.token) {
         throw new Error('No authentication token');
       }
-      
+
       const response = await ReminderService.getNextReminder(auth.token);
-      
+
       if (response.success && response.data) {
         return response.data;
       }
-      
+
       // It's okay if there's no next reminder
       return null;
     } catch (error: any) {
@@ -171,16 +192,19 @@ const reminderSlice = createSlice({
   name: 'reminders',
   initialState,
   reducers: {
-    clearError: (state) => {
+    clearError: state => {
       state.error = null;
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
     },
-    clearNextReminder: (state) => {
+    clearNextReminder: state => {
       state.nextReminder = null;
     },
-    updateLocalSettings: (state, action: PayloadAction<Partial<ReminderSetting>>) => {
+    updateLocalSettings: (
+      state,
+      action: PayloadAction<Partial<ReminderSetting>>
+    ) => {
       if (state.settings) {
         state.settings = { ...state.settings, ...action.payload };
       }
@@ -200,15 +224,15 @@ const reminderSlice = createSlice({
         responded_at: null,
         context: action.payload.context || null,
       };
-      
+
       state.logs.unshift(pendingLog);
       state.nextReminder = pendingLog;
     },
   },
-  extraReducers: (builder) => {
+  extraReducers: builder => {
     // Fetch reminder settings
     builder
-      .addCase(fetchReminderSettings.pending, (state) => {
+      .addCase(fetchReminderSettings.pending, state => {
         state.isLoading = true;
         state.error = null;
       })
@@ -223,7 +247,7 @@ const reminderSlice = createSlice({
 
     // Update reminder settings
     builder
-      .addCase(updateReminderSettings.pending, (state) => {
+      .addCase(updateReminderSettings.pending, state => {
         state.isLoading = true;
         state.error = null;
       })
@@ -238,17 +262,18 @@ const reminderSlice = createSlice({
 
     // Fetch reminder logs
     builder
-      .addCase(fetchReminderLogs.pending, (state) => {
+      .addCase(fetchReminderLogs.pending, state => {
         state.isLoading = true;
         state.error = null;
       })
       .addCase(fetchReminderLogs.fulfilled, (state, action) => {
         state.isLoading = false;
         state.logs = action.payload;
-        
+
         // Find the next pending reminder
-        const nextReminder = action.payload.find(log => 
-          log.status === 'scheduled' && moment(log.scheduled_at).isAfter()
+        const nextReminder = action.payload.find(
+          log =>
+            log.status === 'scheduled' && moment(log.scheduled_at).isAfter()
         );
         state.nextReminder = nextReminder || null;
       })
@@ -259,19 +284,19 @@ const reminderSlice = createSlice({
 
     // Respond to reminder
     builder
-      .addCase(respondToReminder.pending, (state) => {
+      .addCase(respondToReminder.pending, state => {
         state.isLoading = true;
         state.error = null;
       })
       .addCase(respondToReminder.fulfilled, (state, action) => {
         state.isLoading = false;
-        
+
         // Update the log entry
         const index = state.logs.findIndex(log => log.id === action.payload.id);
         if (index !== -1) {
           state.logs[index] = action.payload;
         }
-        
+
         // Clear next reminder if this was it
         if (state.nextReminder && state.nextReminder.id === action.payload.id) {
           state.nextReminder = null;
@@ -284,18 +309,23 @@ const reminderSlice = createSlice({
 
     // Schedule reminder
     builder
-      .addCase(scheduleReminder.pending, (state) => {
+      .addCase(scheduleReminder.pending, state => {
         state.isLoading = true;
         state.error = null;
       })
       .addCase(scheduleReminder.fulfilled, (state, action) => {
         state.isLoading = false;
-        
+
         // Add the scheduled reminder to logs
         state.logs.unshift(action.payload);
-        
+
         // Set as next reminder if it's the earliest
-        if (!state.nextReminder || moment(action.payload.scheduled_at).isBefore(moment(state.nextReminder.scheduled_at))) {
+        if (
+          !state.nextReminder ||
+          moment(action.payload.scheduled_at).isBefore(
+            moment(state.nextReminder.scheduled_at)
+          )
+        ) {
           state.nextReminder = action.payload;
         }
       })
@@ -315,11 +345,11 @@ const reminderSlice = createSlice({
   },
 });
 
-export const { 
-  clearError, 
-  setLoading, 
-  clearNextReminder, 
+export const {
+  clearError,
+  setLoading,
+  clearNextReminder,
   updateLocalSettings,
-  addPendingLog
+  addPendingLog,
 } = reminderSlice.actions;
 export default reminderSlice.reducer;
