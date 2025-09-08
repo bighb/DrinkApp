@@ -30,6 +30,7 @@ import reminderRoutes from './routes/reminders.js';
 // 工具类
 import HealthCheck from './utils/healthCheck.js';
 import CronJobs from './utils/cronJobs.js';
+import portManager from './utils/portManager.js';
 
 class Server {
   constructor() {
@@ -310,49 +311,89 @@ class Server {
   }
 
   // 启动服务器
-  start() {
-    return new Promise((resolve, reject) => {
-      const port = config.server.port;
+  async start() {
+    try {
+      // 智能端口选择
+      const originalPort = config.server.port;
+      const availablePort = await portManager.smartPortSelection(originalPort);
+      
+      // 如果端口发生变化，更新配置
+      if (availablePort !== originalPort) {
+        portManager.updatePortConfig(availablePort);
+        
+        // 更新config对象中的端口
+        config.server.port = availablePort;
+        
+        logger.info(`🔄 端口自动切换: ${originalPort} → ${availablePort}`);
+        
+        // 诊断原始端口的占用情况
+        await portManager.diagnosePort(originalPort);
+      }
+      
+      return new Promise((resolve, reject) => {
+        this.server = this.app.listen(availablePort, err => {
+          if (err) {
+            logger.error('服务器启动失败:', err);
+            reject(err);
+            return;
+          }
 
-      this.server = this.app.listen(port, err => {
-        if (err) {
-          logger.error('服务器启动失败:', err);
-          reject(err);
-          return;
-        }
+          logger.info(`🚀 服务器启动成功`, {
+            port: availablePort,
+            originalPort: originalPort !== availablePort ? originalPort : undefined,
+            env: config.server.env,
+            apiVersion: config.server.apiVersion,
+            pid: process.pid,
+          });
 
-        logger.info(`🚀 服务器启动成功`, {
-          port,
-          env: config.server.env,
-          apiVersion: config.server.apiVersion,
-          pid: process.pid,
+          // 在开发环境中显示可用的端点
+          if (config.server.env === 'development') {
+            logger.info('📋 可用端点:', {
+              health: `http://localhost:${availablePort}/health`,
+              api: `http://localhost:${availablePort}/api/${config.server.apiVersion}`,
+              docs: `http://localhost:${availablePort}/api-docs`,
+            });
+            
+            // 如果端口发生了变化，提供额外提示
+            if (availablePort !== originalPort) {
+              console.log('\n' + '='.repeat(60));
+              console.log(`🔔 注意: 服务器端口已自动切换到 ${availablePort}`);
+              console.log(`   原端口 ${originalPort} 被占用，已自动选择可用端口`);
+              console.log(`   请更新你的客户端配置或环境变量`);
+              console.log('='.repeat(60) + '\n');
+            }
+          }
+
+          resolve();
         });
 
-        // 在开发环境中显示可用的端点
-        if (config.server.env === 'development') {
-          logger.info('📋 可用端点:', {
-            health: `http://localhost:${port}/health`,
-            api: `http://localhost:${port}/api/${config.server.apiVersion}`,
-            docs: `http://localhost:${port}/api-docs`,
-          });
-        }
+        // 设置服务器超时
+        this.server.timeout = 30000; // 30秒
 
-        resolve();
+        // 处理服务器错误
+        this.server.on('error', async (error) => {
+          if (error.code === 'EADDRINUSE') {
+            logger.error(`端口 ${availablePort} 仍然被占用`);
+            // 重新尝试寻找端口
+            try {
+              const nextPort = await portManager.findAvailablePort(availablePort + 1);
+              logger.info(`尝试使用下一个可用端口: ${nextPort}`);
+              // 递归重试
+              this.start().then(resolve).catch(reject);
+              return;
+            } catch (portError) {
+              logger.error('无法找到可用端口:', portError);
+            }
+          } else {
+            logger.error('服务器错误:', error);
+          }
+          reject(error);
+        });
       });
-
-      // 设置服务器超时
-      this.server.timeout = 30000; // 30秒
-
-      // 处理服务器错误
-      this.server.on('error', error => {
-        if (error.code === 'EADDRINUSE') {
-          logger.error(`端口${port}已被占用`);
-        } else {
-          logger.error('服务器错误:', error);
-        }
-        reject(error);
-      });
-    });
+    } catch (error) {
+      logger.error('端口检测失败:', error);
+      throw error;
+    }
   }
 
   // 优雅关闭
