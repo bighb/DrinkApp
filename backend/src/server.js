@@ -218,7 +218,7 @@ class Server {
           },
           servers: [
             {
-              url: `http://localhost:${config.server.port}/api/${config.server.apiVersion}`,
+              url: `http://localhost:${config.server.port}`,
               description: '开发环境',
             },
           ],
