@@ -16,7 +16,7 @@ tools: Read, Write, Edit, MultiEdit, Glob, LS, Grep, Bash, Task, WebSearch, WebF
 ### 前端技术栈
 
 - TypeScript 现代语法
-- React Hooks 和状态管理 (Zustand)和路由 expo-router
+- React Hooks 和 Zustand 状态管理 和路由 expo-router
 - tailwind 样式
 - react-native-reanimated 动画库
 - 使用 pnpm 包管理工具

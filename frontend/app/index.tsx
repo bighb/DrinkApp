@@ -1,15 +1,32 @@
-import { Text, View } from "react-native";
+import React from 'react';
+import { ScrollView, StyleSheet, SafeAreaView } from 'react-native';
+import { WaterProgress, WaterInput, WaterHistory } from '../components/WaterTracking';
 
 export default function Index() {
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <Text>Edit app/index.tsx to edit this screen.</Text>
-    </View>
+    <SafeAreaView style={styles.container}>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        <WaterProgress />
+        <WaterInput />
+        <WaterHistory />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f1f5f9',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  contentContainer: {
+    paddingBottom: 20,
+  },
+});
