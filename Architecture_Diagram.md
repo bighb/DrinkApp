@@ -1,4 +1,4 @@
-# 喝水记录APP系统架构图
+# 喝水记录 APP 系统架构图
 
 ## 整体架构概览
 
@@ -160,103 +160,94 @@
 ### 前端架构 (React Native)
 
 ```
+
 前端架构
-├── 表现层 (Presentation Layer)
-│   ├── 页面组件 (Page Components)
-│   ├── 通用组件 (Common Components)
-│   ├── 图表组件 (Chart Components)
-│   └── 导航组件 (Navigation Components)
-│
-├── 状态管理层 (State Management)
-│   ├── Redux Store
-│   ├── Action Creators
-│   ├── Reducers
-│   └── Middleware (Thunk, Saga)
-│
-├── 业务逻辑层 (Business Logic)
-│   ├── API Service Layer
-│   ├── 数据转换层 (Data Transform)
-│   ├── 业务规则层 (Business Rules)
-│   └── 工具函数库 (Utils)
-│
-├── 数据访问层 (Data Access)
-│   ├── HTTP Client (Axios)
-│   ├── 本地存储 (AsyncStorage)
-│   ├── 离线数据库 (SQLite)
-│   └── 文件系统访问
-│
-└── 设备集成层 (Device Integration)
-    ├── 推送通知
-    ├── 传感器访问
-    ├── 相机和相册
-    └── 系统设置集成
+frontend/
+├── app/                    # 📱 应用页面（使用Expo Router）
+│   ├── (tabs)/            # Tab导航页面组
+│   │   ├── index.tsx      # 首页
+│   │   └── _layout.tsx    # Tab布局配置
+│   ├── _layout.tsx        # 根布局
+│   └── +not-found.tsx     # 404页面
+├── assets/                 # 🎨 资源文件
+│   ├── images/            # 图片资源
+│   └── fonts/             # 字体文件
+├── components/             # 🧩 可复用组件
+│   └── ThemedText.tsx     # 主题文本组件示例
+├── constants/              # 📊 常量定义
+│   └── Colors.ts          # 颜色主题
+├── hooks/                  # 🎣 自定义Hooks
+│   └── useColorScheme.ts  # 主题切换Hook
+├── scripts/                # 🔧 脚本文件
+│   └── reset-project.js   # 项目重置脚本
+├── .gitignore             # Git忽略配置
+├── app.json               # 📋 Expo配置文件（超重要！）
+├── babel.config.js        # Babel配置
+├── package.json           # 项目依赖配置
+├── tsconfig.json          # TypeScript配置
+└── README.md              # 项目说明
+
 ```
 
 ### 后端架构 (Node.js)
 
 ```
+
 后端架构
-├── API网关层 (API Gateway)
-│   ├── Express.js 路由
-│   ├── 中间件管道
-│   ├── 请求验证
-│   └── 响应格式化
+├── API 网关层 (API Gateway)
+│ ├── Express.js 路由
+│ ├── 中间件管道
+│ ├── 请求验证
+│ └── 响应格式化
 │
 ├── 业务服务层 (Business Services)
-│   ├── 控制器层 (Controllers)
-│   ├── 服务层 (Services)
-│   ├── 数据访问层 (DAOs)
-│   └── 模型层 (Models)
+│ ├── 控制器层 (Controllers)
+│ ├── 服务层 (Services)
+│ ├── 数据访问层 (DAOs)
+│ └── 模型层 (Models)
 │
 ├── 基础设施层 (Infrastructure)
-│   ├── 数据库连接池
-│   ├── 缓存管理 (Redis)
-│   ├── 消息队列 (RabbitMQ)
-│   └── 日志系统 (Winston)
+│ ├── 数据库连接池
+│ ├── 缓存管理 (Redis)
+│ ├── 消息队列 (RabbitMQ)
+│ └── 日志系统 (Winston)
 │
 ├── 安全层 (Security Layer)
-│   ├── 身份认证 (JWT)
-│   ├── 权限控制 (RBAC)
-│   ├── 数据加密
-│   └── API限流
+│ ├── 身份认证 (JWT)
+│ ├── 权限控制 (RBAC)
+│ ├── 数据加密
+│ └── API 限流
 │
 └── 监控层 (Monitoring Layer)
-    ├── 性能监控
-    ├── 错误追踪
-    ├── 业务指标监控
-    └── 告警系统
-```
+├── 性能监控
+├── 错误追踪
+├── 业务指标监控
+└── 告警系统
 
-## 数据流架构
-
-### 用户操作数据流
-
-```
-用户操作 → 前端组件 → Redux Action → API调用 → 后端控制器
-    ↑                                                    ↓
-用户界面更新 ← Redux Store ← 状态更新 ← API响应 ← 业务逻辑处理
-    ↑                                                    ↓
-本地缓存更新 ← 数据持久化 ← 数据转换 ← 数据库操作 ← 数据访问层
 ```
 
 ### 智能提醒数据流
 
 ```
+
 定时任务触发 → 提醒策略引擎 → 用户数据分析 → 提醒内容生成
-    ↓                ↓               ↓              ↓
+↓ ↓ ↓ ↓
 推送服务调用 → 多平台推送 → 用户设备接收 → 用户行为反馈
-    ↓                ↓               ↓              ↓
+↓ ↓ ↓ ↓
 发送状态记录 → 成功率统计 → 用户响应分析 → 策略优化调整
+
 ```
 
 ### 数据分析处理流
 
 ```
+
 原始记录数据 → 数据清洗 → 特征提取 → 统计计算 → 分析结果
-    ↓           ↓         ↓         ↓         ↓
+↓ ↓ ↓ ↓ ↓
 数据验证 → 异常处理 → 维度聚合 → 趋势分析 → 可视化生成
-    ↓           ↓         ↓         ↓         ↓
+↓ ↓ ↓ ↓ ↓
 质量监控 → 错误日志 → 缓存更新 → 预测模型 → 用户界面展示
+
 ```
 
 ## 部署架构
@@ -264,20 +255,23 @@
 ### 生产环境部署
 
 ```
-用户请求 → CDN/负载均衡器 → API网关集群 → 业务服务集群
-    ↑           ↓              ↓           ↓
+
+用户请求 → CDN/负载均衡器 → API 网关集群 → 业务服务集群
+↑ ↓ ↓ ↓
 缓存层 ← 静态资源服务 ← 反向代理 ← 服务注册中心
-    ↑           ↓              ↓           ↓
+↑ ↓ ↓ ↓
 数据库主从集群 ← 数据持久化 ← 微服务架构 ← 配置管理中心
-    ↑           ↓              ↓           ↓
+↑ ↓ ↓ ↓
 监控告警系统 ← 日志收集 ← 容器编排 ← 持续集成/部署
+
 ```
 
 ### 开发环境架构
 
 ```
+
 本地开发环境
-├── 前端开发服务器 (Metro Bundler)
+├── 前端开发服务器 (Expo)
 ├── 后端开发服务器 (Nodemon)
 ├── 数据库实例 (MySQL + Redis)
 ├── 模拟推送服务
@@ -288,6 +282,7 @@
 ├── 自动化测试套件
 ├── 性能测试工具
 └── 安全测试工具
+
 ```
 
 这个架构设计考虑了以下关键因素：
@@ -299,4 +294,4 @@
 5. **维护性**: 清晰的分层架构，便于维护和升级
 6. **监控性**: 全方位的监控和告警机制
 
-这个架构为喝水记录APP提供了坚实的技术基础，支持未来的功能扩展和业务发展。
+这个架构为喝水记录 APP 提供了坚实的技术基础，同时也是为了提升个人开发技能，用于学习实践
