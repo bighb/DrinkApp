@@ -61,13 +61,12 @@ class AuthController {
       const passwordHash = await AuthService.hashPassword(password);
 
       // 计算默认饮水目标
-      const defaultGoal = this.calculateDefaultWaterGoal({
+      const defaultGoal = AuthController.calculateDefaultWaterGoal({
         weight,
         height,
         activityLevel,
         gender,
       });
-
       // 开始事务
       const result = await db.transaction(async connection => {
         // 插入用户记录
