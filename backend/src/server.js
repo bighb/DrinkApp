@@ -22,10 +22,10 @@ import maintenanceMode from './middlewares/maintenance.js';
 import { rateLimitMiddleware } from './middlewares/rateLimit.js';
 
 // 路由
-import authRoutes from './routes/auth.js';
-import userRoutes from './routes/users.js';
-import hydrationRoutes from './routes/hydration.js';
-import reminderRoutes from './routes/reminders.js';
+import authRoutes from './routes/auth.routes.js';
+import userRoutes from './routes/user.routes.js';
+import hydrationRoutes from './routes/hydration.routes.js';
+import reminderRoutes from './routes/reminder.routes.js';
 
 // 工具类
 import HealthCheck from './utils/healthCheck.js';
@@ -201,50 +201,16 @@ class Server {
   // 配置Swagger API文档
   async setupSwaggerDocs() {
     try {
-      // 动态导入 ES 模块
-      const swaggerJsdoc = (await import('swagger-jsdoc')).default;
+      // 动态导入 ES 模块和TypeScript编译的文档
       const swaggerUi = (await import('swagger-ui-express')).default;
-
-      const options = {
-        definition: {
-          openapi: '3.0.0',
-          info: {
-            title: 'HydrationTracker API',
-            version: '1.0.0',
-            description: '智能饮水管理应用API文档',
-            contact: {
-              name: 'HydrationTracker Team',
-              email: 'support@hydrationtracker.com',
-            },
-          },
-          servers: [
-            {
-              url: `http://localhost:${config.server.port}`,
-              description: '开发环境',
-            },
-          ],
-          components: {
-            securitySchemes: {
-              bearerAuth: {
-                type: 'http',
-                scheme: 'bearer',
-                bearerFormat: 'JWT',
-              },
-            },
-          },
-          security: [],
-        },
-        apis: [
-          join(__dirname, './routes/*.js'),
-          join(__dirname, './controllers/*.js'),
-        ],
-      };
-
-      const specs = swaggerJsdoc(options);
+      
+      // 导入编译后的文档规范
+      const { swaggerSpec } = await import('./docs/index.js');
+      
       this.app.use(
         '/api-docs',
         swaggerUi.serve,
-        swaggerUi.setup(specs, {
+        swaggerUi.setup(swaggerSpec, {
           explorer: true,
           customCss: '.swagger-ui .topbar { display: none }',
           customSiteTitle: 'HydrationTracker API Docs',
